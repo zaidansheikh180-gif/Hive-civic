@@ -1,0 +1,6 @@
+{
+  "name": "Hive",
+  "description": "Digital Suggestion Box for Local Governance — An academic civic-tech platform allowing citizens to submit, track, and resolve neighborhood suggestions within an immersive 3D environment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
