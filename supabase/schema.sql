@@ -56,6 +56,8 @@ create policy "Users can update own profile without elevating role"
   );
 
 -- Trigger: Automatically generate public profile upon Supabase auth.users signup
+-- SECURITY: All new registrations are strictly assigned 'citizen' role.
+-- Admin elevation MUST be performed by an existing administrator or database operator.
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
@@ -64,7 +66,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', 'Citizen'),
-    coalesce(new.raw_user_meta_data->>'role', 'citizen')
+    'citizen' -- Strictly 'citizen' to prevent role-spoofing via user_metadata
   )
   on conflict (id) do update
   set email = excluded.email,
@@ -117,7 +119,10 @@ create table if not exists public.suggestions (
   support_count integer not null default 1,
   admin_notes text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint check_anonymous_contact check (
+    not is_anonymous or (contact_name is null and contact_email is null and contact_phone is null)
+  )
 );
 
 create index if not exists idx_suggestions_reference_id on public.suggestions(reference_id);
@@ -170,6 +175,21 @@ declare
 begin
   update public.suggestions
   set support_count = support_count + 1
+  where id = suggestion_id
+  returning support_count into updated_count;
+
+  return updated_count;
+end;
+$$ language plpgsql security definer;
+
+-- 6. Stored procedure for safely decrementing community support count
+create or replace function public.decrement_support(suggestion_id uuid)
+returns integer as $$
+declare
+  updated_count integer;
+begin
+  update public.suggestions
+  set support_count = greatest(1, support_count - 1)
   where id = suggestion_id
   returning support_count into updated_count;
 
@@ -240,3 +260,120 @@ create policy "Allow authenticated upload of suggestion photos"
   for insert
   to authenticated
   with check (bucket_id = 'suggestion-photos');
+
+create policy "Allow admins to delete suggestion photos"
+  on storage.objects
+  for delete
+  to authenticated
+  using (bucket_id = 'suggestion-photos' and public.is_admin());
+
+-- ------------------------------------------------------------------------------
+-- 5. CANONICAL INITIAL SEED DATA (Safe Demonstration Records)
+-- ------------------------------------------------------------------------------
+-- Inserts 6 canonical suggestions spanning all 6 statuses and primary categories.
+-- Uses ON CONFLICT (reference_id) DO NOTHING so it can safely be re-run anytime.
+
+insert into public.suggestions (
+  id, reference_id, title, description, category, location_text, status, support_count, is_anonymous, created_at
+) values
+(
+  'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  'DSB-2026-7F3K9P',
+  'Install Pedestrian Crossing at 5th and Main',
+  'Traffic volume has increased significantly since the opening of the community center. A marked pedestrian crosswalk with push-button illuminated signals is urgently needed.',
+  'Roads & Footpaths',
+  '5th Ave & Main St Intersection',
+  'under_review',
+  24,
+  false,
+  '2026-03-01 10:00:00+00'
+),
+(
+  'c9a646d3-9c61-4cd7-9f51-75e964b96b7e',
+  'DSB-2026-9B4X2T',
+  'Repair Broken Streetlights on Oak Lane',
+  'Three consecutive streetlights have been non-functional for over two weeks, creating severe visibility and safety hazards for nighttime pedestrians.',
+  'Street Lighting',
+  'Oak Lane between 2nd and 4th Avenue',
+  'planned',
+  42,
+  false,
+  '2026-03-02 14:30:00+00'
+),
+(
+  'b5e86a01-2f78-4db8-8316-24838b93198e',
+  'DSB-2026-5K1L8Q',
+  'Community Garden Composting Station',
+  'Add public sealed compost drop bins in Riverside Park to divert organic waste from local landfills and support the community garden project.',
+  'Waste Management',
+  'Riverside Park, North Horticultural Section',
+  'implemented',
+  67,
+  true,
+  '2026-02-20 09:15:00+00'
+),
+(
+  'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+  'DSB-2026-8H2C6Y',
+  'Upgrade Playground Lighting and Surface Rubber',
+  'Replace aging sodium vapor floodlights with energy-efficient solar LED arrays and patch degraded rubber mulch under swings.',
+  'Public Spaces',
+  'Elmwood Community Park, West Playground',
+  'under_review',
+  15,
+  false,
+  '2026-03-03 11:00:00+00'
+),
+(
+  'd4e5f6a1-b2c3-4d5e-8f9a-0b1c2d3e4f5a',
+  'DSB-2026-3M7N2P',
+  'Pothole Repair and Drainage Clearing on 12th Avenue',
+  'Deep road depressions damaging vehicles and pooling stagnant stormwater adjacent to the rapid bus terminal.',
+  'Roads & Footpaths',
+  '12th Ave near Transit Interchange Hub',
+  'submitted',
+  31,
+  false,
+  '2026-03-04 08:45:00+00'
+),
+(
+  'e6f7a8b9-c0d1-4e2f-8a3b-4c5d6e7f8a9b',
+  'DSB-2026-1V4W9Z',
+  'Community Center Secure Bicycle Lockers',
+  'Install lockable bike lockers with CCTV coverage to promote green multi-modal transit for neighborhood commuters.',
+  'Transport',
+  'Civic Plaza Community Recreation Center',
+  'implemented',
+  53,
+  true,
+  '2026-02-15 16:20:00+00'
+)
+on conflict (reference_id) do nothing;
+
+-- Seed Initial Status History audit records for demonstration
+insert into public.suggestion_status_history (suggestion_id, old_status, new_status, note, changed_by, created_at)
+values
+  ('f47ac10b-58cc-4372-a567-0e02b2c3d479', null, 'submitted', 'Intake proposal registered into civic ledger.', 'Citizen Intake Portal', '2026-03-01 10:00:00+00'),
+  ('f47ac10b-58cc-4372-a567-0e02b2c3d479', 'submitted', 'under_review', 'Forwarded to Department of Transportation traffic safety engineers for field observation.', 'Municipal Engineering Admin', '2026-03-02 11:15:00+00'),
+  ('c9a646d3-9c61-4cd7-9f51-75e964b96b7e', null, 'submitted', 'Intake proposal registered.', 'Citizen Intake Portal', '2026-03-02 14:30:00+00'),
+  ('c9a646d3-9c61-4cd7-9f51-75e964b96b7e', 'submitted', 'under_review', 'Electrical inspection completed; parts requisitioned.', 'Public Works Dispatcher', '2026-03-03 09:00:00+00'),
+  ('c9a646d3-9c61-4cd7-9f51-75e964b96b7e', 'under_review', 'accepted', 'Approved for electrical maintenance crew dispatch.', 'Municipal Works Director', '2026-03-04 14:00:00+00'),
+  ('c9a646d3-9c61-4cd7-9f51-75e964b96b7e', 'accepted', 'planned', 'Scheduled for bucket truck maintenance on Tuesday night shift.', 'Municipal Operations Lead', '2026-03-05 16:00:00+00'),
+  ('b5e86a01-2f78-4db8-8316-24838b93198e', null, 'submitted', 'Intake proposal registered.', 'Citizen Intake Portal', '2026-02-20 09:15:00+00'),
+  ('b5e86a01-2f78-4db8-8316-24838b93198e', 'submitted', 'implemented', 'Three bear-resistant compost containers installed and operational.', 'Parks & Recreation Supervisor', '2026-02-28 15:30:00+00'),
+  ('d4e5f6a1-b2c3-4d5e-8f9a-0b1c2d3e4f5a', null, 'submitted', 'Intake proposal registered into civic ledger.', 'Citizen Intake Portal', '2026-03-04 08:45:00+00')
+on conflict do nothing;
+
+-- ------------------------------------------------------------------------------
+-- 6. HOW TO CREATE AN ADMINISTRATOR ACCOUNT
+-- ------------------------------------------------------------------------------
+-- 1. Sign up a user account through the app (/auth/register or Supabase Auth Dashboard).
+-- 2. In your Supabase SQL Editor, run this query replacing the email address:
+--
+--    UPDATE public.profiles
+--    SET role = 'admin'
+--    WHERE email = 'admin@yourdomain.gov';
+--
+-- 3. Now that user can access /admin, /admin/suggestions, and triage civic proposals.
+-- ------------------------------------------------------------------------------
+

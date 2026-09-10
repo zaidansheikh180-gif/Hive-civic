@@ -429,6 +429,18 @@ export const suggestionService = {
       throw new Error('Supabase client is not configured.');
     }
 
+    // Attempt atomic RPC procedure first (works under strict RLS)
+    try {
+      const { data: rpcCount, error: rpcErr } = await supabase.rpc('increment_support', {
+        suggestion_id: id,
+      });
+      if (!rpcErr && typeof rpcCount === 'number') {
+        return rpcCount;
+      }
+    } catch {
+      // fallback to direct query
+    }
+
     const { data: current } = await supabase
       .from('suggestions')
       .select('support_count')
@@ -467,20 +479,47 @@ export const suggestionService = {
     }
 
     const alreadySupported = supported.includes(id);
+    let newCount = 1;
 
-    const { data: current } = await supabase
-      .from('suggestions')
-      .select('support_count')
-      .eq('id', id)
-      .single();
+    // Attempt atomic RPC procedure
+    try {
+      const rpcName = alreadySupported ? 'decrement_support' : 'increment_support';
+      const { data: rpcResult, error: rpcErr } = await supabase.rpc(rpcName, {
+        suggestion_id: id,
+      });
 
-    const currentCount = current?.support_count || 1;
-    const newCount = alreadySupported ? Math.max(1, currentCount - 1) : currentCount + 1;
+      if (!rpcErr && typeof rpcResult === 'number') {
+        newCount = rpcResult;
+      } else {
+        // Fallback to direct update
+        const { data: current } = await supabase
+          .from('suggestions')
+          .select('support_count')
+          .eq('id', id)
+          .single();
 
-    await supabase
-      .from('suggestions')
-      .update({ support_count: newCount })
-      .eq('id', id);
+        const currentCount = current?.support_count || 1;
+        newCount = alreadySupported ? Math.max(1, currentCount - 1) : currentCount + 1;
+
+        await supabase
+          .from('suggestions')
+          .update({ support_count: newCount })
+          .eq('id', id);
+      }
+    } catch {
+      // Fallback
+      const { data: current } = await supabase
+        .from('suggestions')
+        .select('support_count')
+        .eq('id', id)
+        .single();
+      const currentCount = current?.support_count || 1;
+      newCount = alreadySupported ? Math.max(1, currentCount - 1) : currentCount + 1;
+      await supabase
+        .from('suggestions')
+        .update({ support_count: newCount })
+        .eq('id', id);
+    }
 
     if (alreadySupported) {
       supported = supported.filter((sId) => sId !== id);

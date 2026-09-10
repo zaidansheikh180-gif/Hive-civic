@@ -112,7 +112,14 @@ export default function App() {
 
           {/* CITIZEN APPLICATION */}
           <Route path="/app" element={<CitizenAppFeed />} />
-          <Route path="/app/submit" element={<SubmitSuggestion />} />
+          <Route
+            path="/app/submit"
+            element={
+              <ProtectedRoute>
+                <SubmitSuggestion />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/app/submitted" element={<SubmissionSuccess />} />
           <Route
             path="/app/track"

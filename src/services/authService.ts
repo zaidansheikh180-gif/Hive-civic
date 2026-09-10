@@ -54,15 +54,13 @@ export const authService = {
         console.warn('Profile fetch catch:', profCatch);
       }
 
-      // Fallback: derive from Supabase user metadata (default role is strictly 'citizen')
-      const fallbackRole: UserRole =
-        user.user_metadata?.role === 'admin' ? 'admin' : 'citizen';
-
+      // SECURITY: Default fallback role is strictly 'citizen'.
+      // Admin privileges require explicit confirmation in public.profiles.
       const profile: UserProfile = {
         id: user.id,
         email: user.email || '',
         full_name: user.user_metadata?.full_name || 'Citizen',
-        role: fallbackRole,
+        role: 'citizen',
         created_at: user.created_at,
         updated_at: new Date().toISOString(),
       };
@@ -135,7 +133,7 @@ export const authService = {
 
         if (prof) {
           fullName = prof.full_name || fullName;
-          role = (prof.role as UserRole) || role;
+          role = prof.role === 'admin' ? 'admin' : 'citizen';
         }
       } catch {
         // use metadata
