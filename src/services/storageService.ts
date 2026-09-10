@@ -6,11 +6,15 @@ export interface PhotoUploadResult {
   error?: string;
 }
 
+/**
+ * Uploads suggestion photo directly to Supabase Storage bucket 'suggestion-photos'
+ * associated with the authoritative suggestion UUID.
+ */
 export const uploadSuggestionPhoto = async (
   file: File,
-  suggestionRefId: string
+  suggestionUuid: string
 ): Promise<PhotoUploadResult> => {
-  // Validate file type
+  // Validate file format
   const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
   if (!validTypes.includes(file.type)) {
     return { error: 'Invalid file format. Please upload JPG, PNG, or WEBP images.' };
@@ -21,48 +25,41 @@ export const uploadSuggestionPhoto = async (
     return { error: 'File size exceeds 5MB limit. Please select a smaller photo.' };
   }
 
-  // Clean filename
+  // Clean filename and structure under suggestion UUID directory
   const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-  const filePath = `${suggestionRefId}/${Date.now()}_${cleanName}`;
+  const filePath = `suggestions/${suggestionUuid}/${Date.now()}_${cleanName}`;
 
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data, error } = await supabase.storage
-        .from('suggestion-photos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (error) {
-        console.warn('Supabase storage upload error, falling back to local representation:', error.message);
-      } else if (data) {
-        const { data: publicUrlData } = supabase.storage
-          .from('suggestion-photos')
-          .getPublicUrl(data.path);
-
-        return {
-          path: data.path,
-          url: publicUrlData.publicUrl,
-        };
-      }
-    } catch (err: any) {
-      console.warn('Storage upload exception:', err.message);
-    }
+  if (!isSupabaseConfigured() || !supabase) {
+    return { error: 'Supabase storage is not configured.' };
   }
 
-  // Local browser data URL fallback
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve({
-        path: `local://${filePath}`,
-        url: reader.result as string,
+  try {
+    const { data, error } = await supabase.storage
+      .from('suggestion-photos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
       });
-    };
-    reader.onerror = () => {
-      resolve({ error: 'Failed to read image file locally.' });
-    };
-    reader.readAsDataURL(file);
-  });
+
+    if (error) {
+      console.warn('Supabase storage upload error:', error.message);
+      return { error: error.message };
+    }
+
+    if (data) {
+      const { data: publicUrlData } = supabase.storage
+        .from('suggestion-photos')
+        .getPublicUrl(data.path);
+
+      return {
+        path: data.path,
+        url: publicUrlData.publicUrl,
+      };
+    }
+
+    return { error: 'Failed to retrieve uploaded image path.' };
+  } catch (err: any) {
+    console.warn('Storage upload exception:', err.message);
+    return { error: err.message || 'Photo upload failed.' };
+  }
 };

@@ -1,13 +1,14 @@
--- ==============================================================================
+import React, { useState } from 'react';
+import { Database, Copy, Check, X, Shield, Terminal } from 'lucide-react';
+
+const SQL_SCHEMA = `-- ==============================================================================
 -- HIVE: Digital Suggestion Box for Local Governance
 -- Supabase Database Schema, Profiles, Roles, RLS Policies & Storage
 -- ==============================================================================
 
 create extension if not exists "uuid-ossp";
 
--- ------------------------------------------------------------------------------
 -- 1. PROFILES TABLE (Supabase Auth user metadata & roles)
--- ------------------------------------------------------------------------------
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
@@ -78,9 +79,7 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- ------------------------------------------------------------------------------
 -- 2. SUGGESTIONS TABLE (Civic Proposals & Infrastructure Reports)
--- ------------------------------------------------------------------------------
 create table if not exists public.suggestions (
   id uuid primary key default gen_random_uuid(),
   reference_id text not null unique,
@@ -129,14 +128,11 @@ create index if not exists idx_suggestions_support on public.suggestions(support
 
 alter table public.suggestions enable row level security;
 
--- Suggestions Policies
--- 1. Public read for civic feed & reference tracking
 create policy "Allow public read suggestions"
   on public.suggestions
   for select
   using (true);
 
--- 2. Authenticated citizens can submit suggestions with status 'submitted' and own user_id
 create policy "Allow authenticated users to submit suggestions"
   on public.suggestions
   for insert
@@ -147,7 +143,6 @@ create policy "Allow authenticated users to submit suggestions"
     reference_id ~* '^DSB-[0-9]{4}-[A-Z0-9]{6}$'
   );
 
--- 3. Only verified administrators can update suggestion status and administrative notes
 create policy "Allow admins to update suggestions"
   on public.suggestions
   for update
@@ -155,31 +150,13 @@ create policy "Allow admins to update suggestions"
   using (public.is_admin())
   with check (public.is_admin());
 
--- 4. Only verified administrators can delete suggestions
 create policy "Allow admins to delete suggestions"
   on public.suggestions
   for delete
   to authenticated
   using (public.is_admin());
 
--- 5. Stored procedure for safely incrementing community support count without arbitrary updates
-create or replace function public.increment_support(suggestion_id uuid)
-returns integer as $$
-declare
-  updated_count integer;
-begin
-  update public.suggestions
-  set support_count = support_count + 1
-  where id = suggestion_id
-  returning support_count into updated_count;
-
-  return updated_count;
-end;
-$$ language plpgsql security definer;
-
--- ------------------------------------------------------------------------------
 -- 3. SUGGESTION STATUS HISTORY TABLE (Tamper-evident Civic Audit Trail)
--- ------------------------------------------------------------------------------
 create table if not exists public.suggestion_status_history (
   id uuid primary key default gen_random_uuid(),
   suggestion_id uuid not null references public.suggestions(id) on delete cascade,
@@ -199,7 +176,6 @@ create index if not exists idx_history_created_at on public.suggestion_status_hi
 
 alter table public.suggestion_status_history enable row level security;
 
--- Status History Policies
 create policy "Allow public read status history"
   on public.suggestion_status_history
   for select
@@ -223,9 +199,7 @@ create policy "Allow admins to insert status history entries"
   to authenticated
   with check (public.is_admin());
 
--- ------------------------------------------------------------------------------
 -- 4. STORAGE BUCKET FOR SUGGESTION ATTACHMENT PHOTOS
--- ------------------------------------------------------------------------------
 insert into storage.buckets (id, name, public)
 values ('suggestion-photos', 'suggestion-photos', true)
 on conflict (id) do nothing;
@@ -240,3 +214,99 @@ create policy "Allow authenticated upload of suggestion photos"
   for insert
   to authenticated
   with check (bucket_id = 'suggestion-photos');
+`;
+
+interface SchemaModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const SchemaModal: React.FC<SchemaModalProps> = ({ isOpen, onClose }) => {
+  const [copied, setCopied] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(SQL_SCHEMA);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-3xl max-h-[85vh] flex flex-col glass-panel border border-[#E7C226]/40 shadow-[0_0_50px_rgba(231,194,38,0.2)] rounded-2xl overflow-hidden">
+        {/* Header */}
+        <div className="p-5 border-b border-white/10 flex items-center justify-between bg-black/40">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#E7C226]/10 border border-[#E7C226]/30 flex items-center justify-center text-[#E7C226]">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold font-helvetica uppercase text-white tracking-wide flex items-center gap-2">
+                <span>Supabase Database Schema Setup</span>
+                <span className="text-[10px] font-mono bg-[#E7C226]/15 text-[#E7C226] px-2 py-0.5 rounded border border-[#E7C226]/30">
+                  SQL Ready
+                </span>
+              </h2>
+              <p className="text-xs text-neutral-400 font-mono">
+                Tables: profiles, suggestions, suggestion_status_history, strict RLS & Storage
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Instructions */}
+        <div className="px-5 py-3.5 bg-[#E7C226]/5 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-neutral-300">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-[#E7C226] flex-shrink-0" />
+            <span>1. Click &ldquo;Copy SQL Schema&rdquo; &rarr; 2. Open Supabase SQL Editor &rarr; 3. Run query.</span>
+          </div>
+
+          <button
+            onClick={handleCopy}
+            className="btn-cut px-4 py-1.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 flex-shrink-0 shadow-[0_0_12px_rgba(231,194,38,0.3)]"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-300" />
+                <span>Copied to Clipboard!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy SQL Schema</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Code View */}
+        <div className="flex-1 overflow-y-auto p-4 bg-[#08080C] font-mono text-xs text-neutral-300">
+          <pre className="whitespace-pre overflow-x-auto leading-relaxed selection:bg-[#E7C226] selection:text-black">
+            {SQL_SCHEMA}
+          </pre>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-white/10 flex items-center justify-between bg-black/40 text-xs font-mono">
+          <span className="text-neutral-400">
+            Filesystem location: <code className="text-[#E7C226]">/supabase/schema.sql</code>
+          </span>
+          <button
+            onClick={onClose}
+            className="btn-cut-border px-4 py-1.5 text-xs font-bold uppercase"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

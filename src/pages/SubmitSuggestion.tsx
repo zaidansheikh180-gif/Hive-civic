@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
-import { uploadSuggestionPhoto } from '../services/storageService';
-import { SuggestionCategory } from '../types';
+import { authService } from '../services/authService';
+import { SuggestionCategory, SUGGESTION_CATEGORIES } from '../types';
 import {
   Send,
   UploadCloud,
@@ -16,20 +16,8 @@ import {
   Mail,
   Phone,
   Check,
+  ArrowLeft,
 } from 'lucide-react';
-
-const CATEGORIES: SuggestionCategory[] = [
-  'Roads & Footpaths',
-  'Street Lighting',
-  'Waste Management',
-  'Water & Sanitation',
-  'Public Spaces',
-  'Transport',
-  'Education',
-  'Environment',
-  'Community Facilities',
-  'Other',
-];
 
 export const SubmitSuggestion: React.FC = () => {
   const navigate = useNavigate();
@@ -51,6 +39,16 @@ export const SubmitSuggestion: React.FC = () => {
   // Status State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Autofill contact info from citizen session if available
+    authService.getCurrentUser().then((user) => {
+      if (user) {
+        if (!contactName) setContactName(user.full_name);
+        if (!contactEmail) setContactEmail(user.email);
+      }
+    });
+  }, []);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -94,34 +92,22 @@ export const SubmitSuggestion: React.FC = () => {
     try {
       setIsSubmitting(true);
 
-      let photoPath: string | undefined;
-      let photoUrl: string | undefined;
-
-      if (photoFile) {
-        const uploadRes = await uploadSuggestionPhoto(photoFile, 'TEMP-REF');
-        if (uploadRes.error) {
-          console.warn('Photo upload warning:', uploadRes.error);
-        } else {
-          photoPath = uploadRes.path;
-          photoUrl = uploadRes.url;
-        }
-      }
-
+      // Pass photoFile directly so suggestion is created first with real UUID,
+      // and photo is uploaded to storage path associated with that real UUID.
       const { referenceId } = await suggestionService.createSuggestion({
         category,
         title: title.trim(),
         description: description.trim(),
         location_text: locationText.trim(),
-        photo_path: photoPath,
-        photo_url: photoUrl,
+        photo_file: photoFile,
         is_anonymous: isAnonymous,
         contact_name: isAnonymous ? undefined : contactName.trim() || undefined,
         contact_email: isAnonymous ? undefined : contactEmail.trim() || undefined,
         contact_phone: isAnonymous ? undefined : contactPhone.trim() || undefined,
       });
 
-      // Navigate directly to dedicated /submitted success route
-      navigate(`/submitted?ref=${referenceId}`);
+      // Navigate directly to /app/submitted success route
+      navigate(`/app/submitted?ref=${referenceId}`);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to register submission. Please try again.');
       setIsSubmitting(false);
@@ -129,7 +115,18 @@ export const SubmitSuggestion: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-8 max-w-4xl mx-auto z-10">
+    <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-8 max-w-4xl mx-auto z-10 select-none">
+      {/* Back button */}
+      <div className="mb-6">
+        <Link
+          to="/app"
+          className="text-xs font-mono text-neutral-400 hover:text-white flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Return to Civic Feed</span>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E7C226]/10 border border-[#E7C226]/30 text-[#E7C226] text-xs font-mono uppercase tracking-widest">
@@ -138,37 +135,42 @@ export const SubmitSuggestion: React.FC = () => {
         <h1 className="text-3xl sm:text-4xl font-bold font-helvetica text-white tracking-tight uppercase">
           Submit a Civic Suggestion
         </h1>
-        <p className="text-xs sm:text-sm text-neutral-300 font-apoc italic">
-          Every suggestion enters the public ledger, receives a unique reference ID, and is reviewed by local authorities.
+        <p className="text-xs sm:text-sm text-neutral-400">
+          Propose neighborhood improvements, report infrastructure defects, or recommend community amenities to local municipal planners.
         </p>
       </div>
 
-      {/* Main Glass Form Container */}
-      <div className="glass-panel p-6 sm:p-10 border border-[#CC9E33]/30 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative">
-        {errorMsg && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/15 border border-red-500/40 text-red-200 flex items-center gap-3 text-xs sm:text-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
+      {errorMsg && (
+        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 text-red-300 text-xs">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400 mt-0.5" />
+          <div>{errorMsg}</div>
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 1. Category Selection */}
+      {/* Form Card */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Core Details Section */}
+        <div className="glass-panel p-6 sm:p-8 space-y-6 rounded-2xl border border-white/10">
+          <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
+            <Tag className="w-4 h-4" />
+            <span>1. Classification & Overview</span>
+          </h2>
+
+          {/* Category Dropdown */}
           <div className="space-y-2">
-            <label className="block text-xs font-mono uppercase tracking-wider text-[#CC9E33] flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5" />
-              <span>Municipal Category *</span>
+            <label className="block text-xs font-mono text-neutral-300 uppercase">
+              Municipal Category <span className="text-[#E7C226]">*</span>
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {CATEGORIES.map((cat) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              {SUGGESTION_CATEGORIES.map((cat) => (
                 <button
                   type="button"
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`px-3 py-2 text-xs rounded-lg font-medium border text-center transition-all ${
+                  className={`p-2.5 rounded-lg text-xs font-mono text-center border transition-all ${
                     category === cat
-                      ? 'bg-[#E7C226] text-black border-[#E7C226] font-bold shadow-[0_0_12px_rgba(231,194,38,0.4)]'
-                      : 'bg-white/5 border-white/10 text-neutral-300 hover:border-[#CC9E33]/50 hover:bg-white/10'
+                      ? 'bg-[#E7C226]/20 border-[#E7C226] text-[#E7C226] font-bold shadow-[0_0_12px_rgba(231,194,38,0.25)]'
+                      : 'bg-black/30 border-white/10 text-neutral-400 hover:border-white/20 hover:text-white'
                   }`}
                 >
                   {cat}
@@ -177,187 +179,214 @@ export const SubmitSuggestion: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Suggestion Title */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono uppercase tracking-wider text-[#CC9E33] flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5" />
-              <span>Proposal Title *</span>
+          {/* Title Input */}
+          <div className="space-y-2">
+            <label className="block text-xs font-mono text-neutral-300 uppercase">
+              Proposal Title <span className="text-[#E7C226]">*</span>
             </label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Broken storm drain causing flooding on Elm & 4th"
-              className="w-full px-4 py-3 rounded-lg bg-black/50 border border-white/15 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-[#E7C226] focus:ring-1 focus:ring-[#E7C226] transition-all"
+              placeholder="e.g. Install Solar Pedestrian Crosswalk Beacon at Maple & 4th"
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-[#E7C226] focus:ring-1 focus:ring-[#E7C226] text-sm"
             />
           </div>
 
-          {/* 3. Detailed Description */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono uppercase tracking-wider text-[#CC9E33] flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5" />
-              <span>Detailed Problem or Proposal *</span>
+          {/* Description Textarea */}
+          <div className="space-y-2">
+            <label className="block text-xs font-mono text-neutral-300 uppercase">
+              Detailed Description <span className="text-[#E7C226]">*</span>
             </label>
             <textarea
               required
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide specific details about the condition, safety hazard, public benefit, or proposed intervention..."
-              className="w-full px-4 py-3 rounded-lg bg-black/50 border border-white/15 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-[#E7C226] focus:ring-1 focus:ring-[#E7C226] transition-all"
+              placeholder="Describe the current issue, how it impacts neighborhood safety or convenience, and your proposed resolution..."
+              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-[#E7C226] focus:ring-1 focus:ring-[#E7C226] text-sm resize-none"
             />
           </div>
 
-          {/* 4. Location Text */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono uppercase tracking-wider text-[#CC9E33] flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#E7C226]" />
-              <span>Exact Physical Location / Landmark *</span>
+          {/* Location Input */}
+          <div className="space-y-2">
+            <label className="block text-xs font-mono text-neutral-300 uppercase flex items-center justify-between">
+              <span>Location / Intersection / Address <span className="text-[#E7C226]">*</span></span>
+              <span className="text-[10px] text-neutral-400">Be as specific as possible</span>
             </label>
-            <input
-              type="text"
-              required
-              value={locationText}
-              onChange={(e) => setLocationText(e.target.value)}
-              placeholder="e.g., West sidewalk of Oakridge Park, opposite building #42"
-              className="w-full px-4 py-3 rounded-lg bg-black/50 border border-white/15 text-white placeholder-neutral-500 text-sm focus:outline-none focus:border-[#E7C226] focus:ring-1 focus:ring-[#E7C226] transition-all"
-            />
-          </div>
-
-          {/* 5. Photo Upload (Optional) */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono uppercase tracking-wider text-[#CC9E33] flex items-center gap-1.5">
-              <UploadCloud className="w-3.5 h-3.5" />
-              <span>Attach Visual Evidence / Photo (Optional)</span>
-            </label>
-
-            {photoPreview ? (
-              <div className="relative inline-block border border-[#E7C226]/50 rounded-xl overflow-hidden group">
-                <img
-                  src={photoPreview}
-                  alt="Suggestion evidence preview"
-                  className="w-48 h-32 object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={handleRemovePhoto}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/80 text-white hover:text-red-400 transition-colors"
-                  title="Remove image"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <label className="border-2 border-dashed border-white/15 hover:border-[#E7C226]/50 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-white/[0.02]">
-                <UploadCloud className="w-8 h-8 text-[#CC9E33] mb-2" />
-                <span className="text-xs text-neutral-300 font-medium">
-                  Click or drag photo here to attach
-                </span>
-                <span className="text-[10px] text-neutral-400 mt-0.5">
-                  Supports JPG, PNG, WEBP up to 5MB
-                </span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handlePhotoSelect}
-                  className="hidden"
-                />
-              </label>
-            )}
-          </div>
-
-          {/* 6. Anonymous Submission Switch */}
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-[#E7C226]" />
-                <div>
-                  <div className="text-xs font-mono uppercase tracking-wider text-white font-bold">
-                    Submit Anonymously
-                  </div>
-                  <div className="text-[11px] text-neutral-400">
-                    Omit your personal name, email, and phone from administrative records.
-                  </div>
-                </div>
-              </div>
+            <div className="relative">
               <input
-                type="checkbox"
-                id="anonymous-toggle"
-                checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="w-5 h-5 accent-[#E7C226] rounded cursor-pointer"
+                type="text"
+                required
+                value={locationText}
+                onChange={(e) => setLocationText(e.target.value)}
+                placeholder="e.g. Northwest corner of Elm Street and 8th Avenue, outside community park"
+                className="w-full px-4 py-3 pl-10 rounded-xl bg-black/40 border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-[#E7C226] focus:ring-1 focus:ring-[#E7C226] text-sm"
               />
+              <MapPin className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3.5" />
             </div>
+          </div>
+        </div>
 
-            {/* Optional Contact fields when NOT anonymous */}
-            {!isAnonymous && (
-              <div className="pt-3 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fadeIn">
-                <div>
-                  <label className="block text-[11px] font-mono text-[#CC9E33] mb-1 flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    <span>Your Name</span>
-                  </label>
+        {/* Photographic Evidence Attachment */}
+        <div className="glass-panel p-6 sm:p-8 space-y-4 rounded-2xl border border-white/10">
+          <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
+            <UploadCloud className="w-4 h-4" />
+            <span>2. Photographic Evidence (Optional)</span>
+          </h2>
+          <p className="text-xs text-neutral-400">
+            Attach a clear photo of the site, damage, or street condition (JPG, PNG, WEBP &bull; Max 5MB).
+          </p>
+
+          {photoPreview ? (
+            <div className="relative rounded-xl overflow-hidden border border-[#E7C226]/40 max-w-sm">
+              <img
+                src={photoPreview}
+                alt="Upload preview"
+                className="w-full h-48 object-cover"
+              />
+              <button
+                type="button"
+                onClick={handleRemovePhoto}
+                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 hover:bg-black text-white transition-colors"
+                title="Remove photo"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-white/15 hover:border-[#E7C226]/50 bg-black/20 hover:bg-black/40 cursor-pointer transition-all">
+              <UploadCloud className="w-8 h-8 text-neutral-400 mb-2" />
+              <span className="text-xs font-mono text-neutral-300">
+                Click to select or drag photo here
+              </span>
+              <span className="text-[10px] font-mono text-neutral-500 mt-1">
+                Max file size: 5MB
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/jpg"
+                onChange={handlePhotoSelect}
+                className="hidden"
+              />
+            </label>
+          )}
+        </div>
+
+        {/* Submitter Identity & Privacy Controls */}
+        <div className="glass-panel p-6 sm:p-8 space-y-6 rounded-2xl border border-white/10">
+          <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4" />
+            <span>3. Submitter Identity &amp; Privacy</span>
+          </h2>
+
+          {/* Anonymity Checkbox */}
+          <div
+            onClick={() => setIsAnonymous(!isAnonymous)}
+            className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3.5 ${
+              isAnonymous
+                ? 'bg-[#E7C226]/10 border-[#E7C226] text-white'
+                : 'bg-black/30 border-white/10 text-neutral-300 hover:border-white/20'
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border ${
+                isAnonymous
+                  ? 'bg-[#E7C226] border-[#E7C226] text-black'
+                  : 'border-neutral-500 bg-transparent'
+              }`}
+            >
+              {isAnonymous && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs font-bold font-mono uppercase tracking-wider text-white">
+                Submit Anonymously
+              </div>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Your name and direct contact info will NOT be recorded or displayed on the public civic ledger. You can still track status anytime via your DSB Reference ID.
+              </p>
+            </div>
+          </div>
+
+          {!isAnonymous && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-mono text-neutral-300 uppercase">
+                  Your Full Name
+                </label>
+                <div className="relative">
                   <input
                     type="text"
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     placeholder="Jane Doe"
-                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs focus:outline-none focus:border-[#E7C226]"
+                    className="w-full px-3 py-2.5 pl-9 rounded-xl bg-black/40 border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-[#E7C226] text-xs font-mono"
                   />
+                  <User className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-mono text-[#CC9E33] mb-1 flex items-center gap-1">
-                    <Mail className="w-3 h-3" />
-                    <span>Email Address</span>
-                  </label>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-mono text-neutral-300 uppercase">
+                  Email Address
+                </label>
+                <div className="relative">
                   <input
                     type="email"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="jane@example.org"
-                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs focus:outline-none focus:border-[#E7C226]"
+                    placeholder="jane@example.com"
+                    className="w-full px-3 py-2.5 pl-9 rounded-xl bg-black/40 border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-[#E7C226] text-xs font-mono"
                   />
+                  <Mail className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-mono text-[#CC9E33] mb-1 flex items-center gap-1">
-                    <Phone className="w-3 h-3" />
-                    <span>Phone Number</span>
-                  </label>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-mono text-neutral-300 uppercase">
+                  Phone (Optional)
+                </label>
+                <div className="relative">
                   <input
                     type="tel"
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs focus:outline-none focus:border-[#E7C226]"
+                    placeholder="(555) 019-2834"
+                    className="w-full px-3 py-2.5 pl-9 rounded-xl bg-black/40 border border-white/10 text-white placeholder-neutral-500 focus:outline-none focus:border-[#E7C226] text-xs font-mono"
                   />
+                  <Phone className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-3" />
                 </div>
               </div>
-            )}
+            </div>
+          )}
+        </div>
+
+        {/* Submit Actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+          <div className="text-xs font-mono text-neutral-400">
+            Submission issues an immutable <span className="text-[#E7C226]">DSB-YYYY-XXXXXX</span> tracking reference.
           </div>
 
-          {/* Submit Action Button */}
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="btn-cut w-full py-4 text-sm font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(231,194,38,0.4)] disabled:opacity-50"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <span>Registering Suggestion...</span>
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  <span>Submit Suggestion into HIVE</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full sm:w-auto btn-cut px-10 py-4 text-sm font-extrabold uppercase tracking-widest flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(231,194,38,0.4)] disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                <span>Recording in Ledger...</span>
+              </span>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                <span>Register Suggestion</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
