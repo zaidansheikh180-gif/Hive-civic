@@ -1,440 +1,462 @@
 # HIVE Civic — Project Progress
 
-> Last updated: 8 September 2026
+> **Last updated:** 10 September 2026
+> **Current phase:** Supabase/auth security hardening + end-to-end verification
 
-## Project Status
+## 1. Current Status
 
-**Current stage:** Functional prototype + architecture hardening
+HIVE is a functional civic suggestion-platform prototype with a React/TypeScript frontend, Supabase backend, citizen/admin flows, and a route-aware Three.js/React Three Fiber visual system.
 
-HIVE is a digital community suggestion platform. Citizens can learn about the project, submit civic suggestions, receive a reference number, and track progress. Administrators can review and manage suggestions.
+The project has moved beyond the initial prototype architecture. The current priority is to make the existing implementation secure and verifiable before spending the next major effort on visual polish.
 
-The project has a working foundation, but it is **not yet production-ready**. The remaining work is mainly authentication, database/security hardening, complete user flow integration, testing, and visual polish.
+**Important:** A committed Supabase migration is not proof that the live Supabase project has executed it. Live database execution still needs verification in AI Studio/Supabase.
 
 ---
 
-# 1. Completed
+# 2. Completed
 
-## Project Foundation
+## Project foundation
 
-- [x] React application created
-- [x] Project organized into pages, components, services, types, and 3D scenes
-- [x] React Router added for page navigation
-- [x] Supabase client integration added
-- [x] Environment-variable configuration added
-- [x] Supabase database schema created
+- [x] React + TypeScript + Vite application
+- [x] React Router
+- [x] Supabase client
+- [x] Supabase environment-variable configuration
+- [x] PostgreSQL schema baseline
+- [x] Dedicated service layer
+- [x] Dedicated 3D subsystem
+- [x] Architecture documentation
+- [x] Progress tracking documentation
 
-## Citizen Features
+## Citizen product flow
 
-- [x] Home/main HIVE interface
-- [x] Suggestion submission page
-- [x] Suggestion title and description
-- [x] Category selection
-- [x] Location details
-- [x] Photo upload support
-- [x] Anonymous-submission option in the existing submission flow
+- [x] About/Welcome root route
+- [x] Citizen login page
+- [x] Citizen registration page
+- [x] Password recovery page
+- [x] Protected citizen application routes
+- [x] Submit suggestion page
 - [x] Submission success page
-- [x] Unique DSB reference numbers
-- [x] Suggestion tracking page
-- [x] Status history display
+- [x] Track suggestion page
+- [x] My Suggestions page
+- [x] Citizen suggestion details page
+- [x] Anonymous-public-identity option
 
-## Suggestion Categories
+## Admin product flow
 
-- [x] Roads & Footpaths
-- [x] Street Lighting
-- [x] Waste Management
-- [x] Water & Sanitation
-- [x] Public Spaces
-- [x] Transport
-- [x] Education
-- [x] Environment
-- [x] Community Facilities
-- [x] Other
+- [x] Separate admin login
+- [x] Protected admin dashboard
+- [x] Admin suggestion list
+- [x] Admin suggestion details/workspace
+- [x] Status management UI
+- [x] Admin notes support
 
-## Suggestion Statuses
+## Domain model
 
-- [x] Submitted
-- [x] Under Review
-- [x] Accepted
-- [x] Planned
-- [x] Implemented
-- [x] Rejected
+- [x] Canonical ten categories
+- [x] Canonical six statuses
+- [x] DSB-YYYY-XXXXXX reference format
+- [x] PostgreSQL UUID as internal suggestion identity
+- [x] Suggestion status history model
+- [x] Suggestion ownership via `user_id`
 
-## Administration
+## 3D system
 
-- [x] Separate admin login page exists
-- [x] Admin dashboard exists
-- [x] Suggestion management page exists
-- [x] Individual suggestion details page exists
-- [x] Dashboard statistics exist
-- [x] Category/status information is displayed
-- [x] Admin logout flow exists
-
-## 3D / Visual System
-
-- [x] Three.js added
-- [x] React Three Fiber added
-- [x] Drei added
-- [x] GSAP added
-- [x] Motion/animation library added
-- [x] Shared 3D scene canvas created
-- [x] Route-based 3D scenes created
-- [x] Home scene
-- [x] Submit scene
-- [x] Success scene
-- [x] Track scene
-- [x] Admin scene
-- [x] Workspace scene
-- [x] Reusable 3D objects created, including civic network/data visual elements
-
-## Database Foundation
-
-- [x] Profiles table
-- [x] Suggestions table
-- [x] Suggestion status history table
-- [x] Database relationships
-- [x] Indexes
-- [x] Row-level security policies drafted
-- [x] Suggestion photo storage bucket configured in the schema
+- [x] Three.js
+- [x] React Three Fiber
+- [x] Drei
+- [x] GSAP
+- [x] Motion
+- [x] Shared SceneCanvas
+- [x] Route-specific scenes
+- [x] Reusable 3D objects
+- [x] Camera rig
+- [x] Particle/effects layer
 
 ---
 
-# 2. Recently Identified Problems & Resolution Status
-
-All architectural, security, and authentication requirements have been audited and implemented:
+# 3. Supabase / Security Hardening Completed in Repository
 
 ## Authentication
 
-- [x] Implement proper citizen registration (`/auth/register` with Supabase Auth)
-- [x] Implement proper citizen sign-in (`/auth/login` with Supabase Auth)
-- [x] Implement sign-out for citizens (terminates session and state)
-- [x] Implement forgot/reset password flow (`/auth/forgot-password`)
-- [x] Protect citizen routes (`/app/submit`, `/app/suggestions`) with `ProtectedRoute`
-- [x] Keep administrator authentication separate from citizen authentication (`/admin/login`)
-- [x] Eliminate client-side role-spoofing (roles strictly verified against `public.profiles` in PostgreSQL)
+- [x] Removed HIVE's localStorage-backed authentication/profile cache from `authService.ts`
+- [x] Supabase Auth is now the authentication source
+- [x] `getCurrentUserSync()` no longer trusts browser-cached identity
+- [x] Citizen sign-in uses Supabase Auth
+- [x] Citizen sign-up uses Supabase Auth
+- [x] Password reset uses Supabase Auth
+- [x] Sign-out uses Supabase Auth
+- [x] Admin sign-in uses Supabase Auth + profile role verification
+- [x] Browser-provided role metadata is not used to grant admin privileges
 
-## First-Visit Experience
+## Route protection
 
-The approved user journey is fully operational:
+- [x] `/app` protected
+- [x] `/app/submit` protected
+- [x] `/app/submitted` protected
+- [x] `/app/track` protected
+- [x] `/app/suggestions` protected
+- [x] `/app/suggestions/:id` protected
+- [x] `/admin/*` protected with admin role requirement
+- [x] Citizen login/register use public-only route behavior
 
-`Website (/) → About/Welcome → Citizen Sign In/Register (/auth/login) → HIVE Interface (/app)`
+## Suggestion persistence
 
-Tasks:
+- [x] Suggestion service no longer uses localStorage as the database
+- [x] Suggestion creation requires an authenticated Supabase user
+- [x] Database UUID is returned and treated as authoritative
+- [x] DSB reference ID remains the human-facing identifier
 
-- [x] Make the About/Welcome page the first page for visitors (`/`)
-- [x] Explain what HIVE is and why it exists
-- [x] Explain how HIVE works (intake, triage, public accountability)
-- [x] Add clear "Enter HIVE" and "Submit Suggestion" call-to-actions
-- [x] Create citizen login page (`/auth/login`)
-- [x] Create citizen registration page (`/auth/register`)
-- [x] Redirect authenticated citizens into the main HIVE interface
-- [x] Redirect unauthenticated users back to the welcome/authentication flow with return state
+## Public-data protection
 
-## About Page
+- [x] Added `public.public_suggestions` safe projection
+- [x] Public suggestion queries use the projection instead of `select *` on the base table
+- [x] Projection excludes `user_id`, contact information, admin notes, and storage internals
+- [x] Added `public.public_suggestion_status_history` projection
 
-- [x] Complete the About/Welcome page (`src/pages/WelcomeAbout.tsx`)
-- [x] Add project purpose
-- [x] Add problem statement
-- [x] Add how-it-works section with civic lifecycle
-- [x] Add project objectives
-- [x] Add community-focused explanation
-- [x] Clearly state that HIVE is an academic prototype and not an official government portal
-- [x] Give the page the same 3D visual quality as the rest of the website
+## Status-history integrity
 
-## Citizen Account Features
+- [x] Client-side status-history writes removed from suggestion service
+- [x] Database trigger records initial submission history
+- [x] Database trigger records status changes
+- [x] Administrative actor is derived from `auth.uid()` for status-change history
+- [x] Citizen cannot arbitrarily claim another actor in history
 
-- [x] Connect citizen accounts to Supabase Auth
-- [x] Connect each citizen profile to their suggestions via `user_id`
-- [x] Add "My Suggestions" (`/app/suggestions`)
-- [x] Allow citizens to view their own submissions with status indicators
-- [x] Allow citizens to open their own suggestion details (`/app/suggestions/:id`)
-- [x] Preserve citizen privacy when `is_anonymous` is selected (nullifying contact info)
+## Photo attachment
 
----
+- [x] Suggestion is created before photo upload so its UUID is known
+- [x] Photo path is UUID-associated
+- [x] Added `attach_suggestion_photo` ownership-checked RPC
+- [x] Ordinary citizen UPDATE permission is not required merely to attach a photo
 
-# 3. Database and Security Fixes Implemented
+## Community support
 
-## Supabase as the Source of Truth
+- [x] Removed localStorage support-state mechanism
+- [x] Added `suggestion_supports` table
+- [x] Added one-support-per-user/suggestion primary-key constraint
+- [x] Added authenticated `add_support` RPC
+- [x] Added authenticated `remove_support` RPC
+- [x] Frontend support toggling now uses authenticated database state
 
-- [x] Fully integrated Supabase PostgreSQL as the authoritative source of truth
-- [x] No `localStorage` mock data or simulation
-- [x] Fallback banner displayed with SQL copy tool (`SchemaModal`) when tables are uninitialized
+## RLS hardening migration
 
-## Suggestion ID / History Issue
-
-- [x] Suggestion creation returns the authoritative PostgreSQL-generated UUID
-- [x] Initial and subsequent status-history records reference the real foreign-key UUID
-- [x] Foreign-key cascade constraints verified in schema
-
-## Row-Level Security
-
-- [x] Public users can read approved suggestions and status history
-- [x] Citizens can only submit valid `submitted` status proposals with valid reference format
-- [x] Administrative updates (`updateSuggestionStatus`) strictly protected by `public.is_admin()`
-- [x] Atomic community endorsement via `increment_support` and `decrement_support` RPC procedures
-- [x] Trigger `handle_new_user()` strictly assigns `'citizen'` role to eliminate privilege escalation
-
-## Photo Storage
-
-- [x] Dedicated `suggestion-photos` Supabase storage bucket configured in schema
-- [x] Public read policy enabled for civic transparency
-- [x] Authenticated upload policy enforced
-- [x] Administrator photo cleanup policy configured
-- [ ] Apply appropriate storage access rules
-- [ ] Test upload, viewing, and deletion behaviour
+- [x] Added `supabase/migrations/001_security_hardening.sql`
+- [x] Removed broad public base-table suggestion read policy
+- [x] Added citizen ownership-aware suggestion SELECT policy
+- [x] Kept admin update/delete authorization behind `is_admin()`
+- [x] Hardened profile role constraint to `citizen | admin`
+- [x] Hardened `is_admin()` function search path and execution privileges
+- [x] Removed arbitrary client status-history insert policies
 
 ---
 
-# 4. UI / UX Work Remaining
+# 4. Important Problems Found and Solved
 
-The website is intended to be a **fully 3D animated experience**, not a normal website with a decorative 3D background.
+### Problem: localStorage authentication
 
-## Public Experience
+**Old:** cached profile/role in localStorage.  
+**Fixed:** Supabase Auth session + database profile are authoritative.
 
-- [ ] Design the About/Welcome scene
-- [ ] Design the citizen authentication scene
-- [ ] Create a smooth transition from About → Authentication → HIVE
-- [ ] Ensure the 3D environment communicates the HIVE concept
+### Problem: fake admin/demo authentication risk
 
-## Main HIVE Interface
+**Old:** broad prototype fallback behavior could substitute for genuine authentication.  
+**Fixed:** admin login now depends on Supabase Auth and `profiles.role`.
 
-- [ ] Review the existing 3D home scene
-- [ ] Improve depth, lighting, camera movement, and object animation
-- [ ] Add polished interactive components
-- [ ] Make important actions visually obvious
-- [ ] Avoid excessive animation that makes the interface difficult to use
+### Problem: public `select *`
 
-## Submit Page
+**Old:** public suggestion reads could return private fields before React hid them.  
+**Fixed:** public service queries use safe projections.
 
-- [ ] Ensure the form is visually integrated into the 3D environment
-- [ ] Add smooth input interactions
-- [ ] Add loading animation
-- [ ] Add upload progress/feedback
-- [ ] Improve validation feedback
-- [ ] Ensure the page remains usable on mobile devices
+### Problem: status-history actor spoofing
 
-## Tracking Page
+**Old:** browser supplied `changed_by`.  
+**Fixed:** database trigger derives status-change actor from `auth.uid()`.
 
-- [ ] Improve the 3D status timeline
-- [ ] Make status changes visually understandable
-- [ ] Add polished loading/empty/error states
-- [ ] Ensure tracking remains simple despite the 3D design
+### Problem: frontend support counter manipulation
 
-## Admin Interface
+**Old:** localStorage tracked support and direct-update fallbacks existed.  
+**Fixed:** authenticated support table + RPC model.
 
-- [ ] Improve the 3D admin environment
-- [ ] Improve dashboard visual hierarchy
-- [ ] Improve charts and data visualization
-- [ ] Add polished loading/empty/error states
-- [ ] Ensure administrators can quickly review and update suggestions
+### Problem: citizen photo update permissions
 
-## Responsive Design
+**Old:** attaching a photo could require broad row UPDATE permissions.  
+**Fixed:** ownership-checked attachment RPC.
 
-- [ ] Test mobile layout
-- [ ] Test tablet layout
-- [ ] Test desktop layout
-- [ ] Optimize 3D performance on lower-end devices
-- [ ] Ensure important controls remain accessible without relying on hover
+### Problem: UUID/reference-ID confusion
+
+**Old:** frontend-generated suggestion IDs conflicted with PostgreSQL UUID relationships.  
+**Fixed:** PostgreSQL UUID is authoritative; DSB reference is human-facing.
+
+### Problem: `/app` could be reached without authentication
+
+**Old:** main citizen route was not protected even though deeper routes were.  
+**Fixed:** `/app` is now behind `ProtectedRoute`.
 
 ---
 
-# 5. Application Flow To Implement
+# 5. Current Repository Changes Awaiting AI Studio Pull
 
-## Visitor
+The current GitHub revision includes:
 
-`Open HIVE → About/Welcome → Enter HIVE → Sign In/Register → Main HIVE Interface`
+```text
+src/services/authService.ts
+src/services/suggestionService.ts
+src/App.tsx
+supabase/migrations/001_security_hardening.sql
+ARCHITECTURE.md
+PROGRESS.md
+```
 
-## New Citizen
-
-`About → Register → Sign In → HIVE Interface → Submit Suggestion → Receive DSB Reference → View Suggestion`
-
-## Returning Citizen
-
-`Open HIVE → Sign In → HIVE Interface → My Suggestions / Submit / Track`
-
-## Citizen Tracking
-
-`HIVE → Track → Enter Reference Number → View Current Status + History`
-
-## Administrator
-
-`Admin Portal → Admin Login → Dashboard → Suggestions → Suggestion Details → Review/Update Status`
+These changes should be pulled into AI Studio before continuing development.
 
 ---
 
-# 6. Testing Required
+# 6. Still Required — Live Supabase Verification
 
-- [ ] Test citizen registration
-- [ ] Test citizen login
-- [ ] Test citizen logout
-- [ ] Test password reset
-- [ ] Test protected routes
-- [ ] Test suggestion creation
-- [ ] Test every category
-- [ ] Test photo upload
-- [ ] Test reference-number generation
-- [ ] Test tracking
-- [ ] Test every suggestion status
-- [ ] Test status history
-- [ ] Test citizen access restrictions
-- [ ] Test admin access restrictions
-- [ ] Test admin status updates
-- [ ] Test invalid reference numbers
-- [ ] Test empty states
-- [ ] Test network/database failures
-- [ ] Test mobile responsiveness
-- [ ] Test 3D performance
-- [ ] Run TypeScript checks
-- [ ] Run production build
-- [ ] Fix all build/runtime errors
+- [ ] Execute/apply `supabase/migrations/001_security_hardening.sql` against the actual Supabase project
+- [ ] Verify migration succeeds without SQL errors
+- [ ] Verify `profiles` role constraint
+- [ ] Verify `handle_new_user()` creates citizens
+- [ ] Verify `is_admin()` works for admin accounts
+- [ ] Verify RLS policies on `suggestions`
+- [ ] Verify RLS policies on `suggestion_status_history`
+- [ ] Verify `suggestion_supports` RLS
+- [ ] Verify public projections are queryable
+- [ ] Verify public base-table access is restricted
+- [ ] Verify storage policies
+- [ ] Verify `attach_suggestion_photo()`
+- [ ] Verify support RPCs
+- [ ] Verify triggers create history entries
 
 ---
 
-# 7. Community / Academic Work Remaining
+# 7. End-to-End Testing Required
 
-The software alone is not the entire project. HIVE should also be supported by actual community understanding.
+## Citizen
 
-- [ ] Identify the local community/problem area for the study
-- [ ] Collect relevant observations or feedback
-- [ ] Speak with community members where required by the project
-- [ ] Identify the most common local issues
-- [ ] Record findings in a structured manner
-- [ ] Use findings to validate HIVE's problem statement
-- [ ] Document how the proposed system addresses the observed problem
-- [ ] Prepare project screenshots/demo material
-- [ ] Prepare final project presentation
-- [ ] Prepare project report/documentation
+- [ ] Register a new citizen account
+- [ ] Verify profile is created
+- [ ] Verify role is `citizen`
+- [ ] Verify login
+- [ ] Verify logout
+- [ ] Verify session persistence
+- [ ] Verify password reset
+- [ ] Verify `/app` cannot be accessed while logged out
+- [ ] Submit a suggestion
+- [ ] Verify real PostgreSQL UUID
+- [ ] Verify DSB reference ID
+- [ ] Verify initial status history
+- [ ] Upload a photo
+- [ ] Verify photo association
+- [ ] Verify My Suggestions
+- [ ] Verify citizen details
+- [ ] Verify citizen cannot access another citizen's private suggestion
 
----
+## Anonymous-public identity
 
-# 8. Final Documentation Remaining
+- [ ] Submit with anonymity enabled
+- [ ] Verify contact information is not exposed through public tracking
+- [ ] Verify internal ownership remains available
 
-- [x] Basic project concept documented
-- [ ] Final project overview
-- [ ] Problem statement
-- [ ] Objectives
-- [ ] Target users
-- [ ] Functional requirements
-- [ ] User flow
-- [ ] Database/data-flow explanation in simple language
-- [ ] Testing results
-- [ ] Community-study findings
-- [ ] Screenshots
-- [ ] Final limitations
-- [ ] Future improvements
-- [ ] Team contribution section
+## Tracking
 
----
+- [ ] Search valid DSB reference
+- [ ] Search invalid reference
+- [ ] Verify public-safe fields only
+- [ ] Verify status history
 
-# 9. Recommended Build Order
+## Community support
 
-The remaining work should be completed in this order.
+- [ ] Authenticate as citizen
+- [ ] Support a suggestion
+- [ ] Verify count changes
+- [ ] Support again
+- [ ] Verify duplicate support is prevented
+- [ ] Remove support
+- [ ] Verify count/state returns correctly
 
-### Phase 1 — Authentication
+## Admin
 
-1. Add citizen registration
-2. Add citizen login
-3. Add logout/password reset
-4. Connect profiles to Supabase Auth
-5. Protect citizen routes
-6. Keep admin authentication separate
-
-### Phase 2 — First-Visit Experience
-
-1. Complete About/Welcome page
-2. Make it the root page
-3. Add Enter HIVE action
-4. Add authentication flow
-5. Redirect authenticated users to the application
-
-### Phase 3 — Database & Security
-
-1. Fix suggestion UUID handling
-2. Remove production localStorage dependency
-3. Fix RLS policies
-4. Secure admin operations
-5. Secure citizen-owned data
-6. Fix photo-storage lifecycle
-
-### Phase 4 — Citizen Experience
-
-1. Add My Suggestions
-2. Connect suggestions to accounts
-3. Improve tracking
-4. Improve submission flow
-5. Add complete loading/error/empty states
-
-### Phase 5 — 3D & Visual Polish
-
-1. About scene
-2. Authentication scene
-3. Main HIVE scene
-4. Submit scene
-5. Tracking scene
-6. Admin scenes
-7. Transitions between scenes
-8. Responsive 3D optimization
-
-### Phase 6 — Testing
-
-1. Functional testing
-2. Authentication testing
-3. Database/security testing
-4. Responsive testing
-5. 3D performance testing
-6. Production build testing
-
-### Phase 7 — Academic Completion
-
-1. Community study
-2. Findings
-3. Screenshots
-4. Report
-5. Presentation
-6. Final demonstration
+- [ ] Admin login
+- [ ] Non-admin admin-login rejection
+- [ ] Admin dashboard statistics
+- [ ] Admin suggestion list
+- [ ] Admin details
+- [ ] Status update
+- [ ] Admin note
+- [ ] Automatic status-history entry
+- [ ] Verify actor is the authenticated admin UUID
+- [ ] Verify citizen cannot perform admin update
 
 ---
 
-# 10. Definition of Done
+# 8. UI / 3D Work Remaining
 
-HIVE should only be considered complete when all of the following are true:
+The product requirement remains a **fully 3D animated website**. Current 3D infrastructure exists, but visual QA/polish is not complete.
 
-- [ ] A new visitor first understands what HIVE is
-- [ ] The visitor can create an account or sign in
-- [ ] Authenticated citizens can enter the main HIVE interface
-- [ ] Citizens can submit suggestions successfully
-- [ ] Every submission receives a valid reference number
-- [ ] Citizens can see their own suggestions
-- [ ] Citizens can track suggestion progress
-- [ ] Administrators can securely review suggestions
-- [ ] Administrators can update suggestion status
-- [ ] Status history is stored correctly
-- [ ] Database access is properly protected
-- [ ] Supabase is the authoritative data source
-- [ ] Photos are stored and accessed correctly
-- [ ] Every major page has a polished 3D experience
-- [ ] Animations are smooth and purposeful
-- [ ] The website works on mobile, tablet, and desktop
-- [ ] Loading, empty, and error states are handled
-- [ ] The production build succeeds without errors
-- [ ] The project has been tested end-to-end
-- [ ] Community/project findings are documented
-- [ ] Final academic documentation and presentation are ready
+- [ ] Give About/Welcome scene a fully developed 3D narrative
+- [ ] Develop dedicated authentication visual experience
+- [ ] Improve About → Auth → App transitions
+- [ ] Refine main HIVE scene
+- [ ] Refine submission scene
+- [ ] Refine success scene
+- [ ] Refine tracking scene
+- [ ] Refine My Suggestions scene
+- [ ] Refine admin scene
+- [ ] Refine workspace scene
+- [ ] Improve lighting/material quality
+- [ ] Improve camera choreography
+- [ ] Improve meaningful object interactions
+- [ ] Add polished loading states
+- [ ] Add polished empty states
+- [ ] Add polished error states
+- [ ] Add reduced-motion behavior
+- [ ] Test mobile 3D performance
+- [ ] Test tablet performance
+- [ ] Test desktop performance
+
+Do not replace the existing 3D architecture with generic decorative backgrounds.
 
 ---
 
-# 11. Current Priority
+# 9. Architecture Cleanup Remaining
 
-**Highest priority:**
+- [ ] Reconcile baseline `supabase/schema.sql` with the hardened migration so fresh installation is self-consistent
+- [ ] Decide whether demo seed records should be isolated into an explicit demo dataset
+- [ ] Reconcile seeded support counts with `suggestion_supports`
+- [ ] Verify final storage privacy/public-read decision
+- [ ] Remove obsolete legacy type fields after all consumers are migrated
+- [ ] Consolidate duplicate page/component responsibilities where useful
+- [ ] Remove dead/unused code
+- [ ] Remove unnecessary dependencies if confirmed unused
+- [ ] Consider route-folder organization only if it materially improves maintainability
 
-1. Citizen authentication
-2. About/Welcome entry page
-3. Protected citizen application flow
-4. Supabase UUID/history fix
-5. RLS/security hardening
-6. Remove production localStorage dependency
-7. My Suggestions
-8. Complete 3D visual polish
-9. End-to-end testing
-10. Community-study and academic documentation
+---
 
-The project already has a strong functional and visual foundation. The next stage is not to rebuild HIVE, but to connect the existing pieces correctly, secure the data, complete the citizen journey, and bring every page to the intended 3D quality.
+# 10. Community / Academic Work Remaining
+
+- [ ] Identify local community/problem area
+- [ ] Conduct required observations/interviews/feedback collection
+- [ ] Document actual community findings
+- [ ] Compare findings with HIVE problem statement
+- [ ] Document limitations
+- [ ] Prepare screenshots
+- [ ] Prepare final project report
+- [ ] Prepare presentation
+- [ ] Prepare final demonstration
+- [ ] Document team contributions
+
+---
+
+# 11. Current Recommended Sequence
+
+```text
+1. Pull current GitHub changes into AI Studio
+        ↓
+2. Apply 001_security_hardening.sql to the real Supabase project
+        ↓
+3. Run TypeScript/lint/build
+        ↓
+4. Test citizen registration/login/session
+        ↓
+5. Test RLS using citizen/admin accounts
+        ↓
+6. Test suggestion creation + UUID/reference ID
+        ↓
+7. Test status-history triggers
+        ↓
+8. Test photo attachment
+        ↓
+9. Test community support
+        ↓
+10. Fix every failed test
+        ↓
+11. Update ARCHITECTURE.md + PROGRESS.md
+        ↓
+12. Push verified state to GitHub
+        ↓
+13. Begin full 3D/UX polish
+```
+
+---
+
+# 12. Definition of Done
+
+HIVE is complete only when:
+
+- [ ] Visitor understands HIVE before entering the application
+- [ ] Citizen registration/login works through Supabase Auth
+- [ ] Citizen role cannot be self-escalated
+- [ ] Admin role is database-controlled
+- [ ] `/app/*` is protected
+- [ ] `/admin/*` is protected
+- [ ] Suggestions are stored only in PostgreSQL
+- [ ] UUID/reference ID separation is correct
+- [ ] Public tracking exposes only safe fields
+- [ ] Citizen ownership is enforced by RLS
+- [ ] Admin operations are enforced by RLS
+- [ ] Status history is database-generated and trustworthy
+- [ ] Photos are correctly stored and access-controlled
+- [ ] Community support cannot be trivially duplicated by one user
+- [ ] All six statuses are consistent
+- [ ] All ten categories are consistent
+- [ ] Every major route has a polished 3D experience
+- [ ] Mobile/tablet/desktop work correctly
+- [ ] Loading/error/empty states are complete
+- [ ] Lint passes
+- [ ] Production build passes
+- [ ] End-to-end security testing passes
+- [ ] Community/academic evidence is documented
+- [ ] Final report and presentation are ready
+
+---
+
+# 13. Current Priority
+
+### P0 — Do now
+
+1. Pull GitHub hardening changes into AI Studio.
+2. Apply the security migration to the live Supabase project.
+3. Verify RLS/auth with real accounts.
+4. Run lint/build and fix errors.
+5. Test the complete citizen/admin data flows.
+
+### P1 — After backend verification
+
+1. Finish citizen UX.
+2. Finish public tracking privacy.
+3. Finish photo lifecycle.
+4. Finish community support behavior.
+5. Reconcile schema/migrations.
+
+### P2 — Visual/product quality
+
+1. Full 3D route polish.
+2. Motion and transitions.
+3. Responsive optimization.
+4. Accessibility/reduced motion.
+
+### P3 — Academic delivery
+
+1. Community study.
+2. Documentation.
+3. Report.
+4. Presentation.
+5. Final demo.
+
+---
+
+## Change-management rule
+
+**Every meaningful implementation or architectural change must update both `ARCHITECTURE.md` and `PROGRESS.md`.**
+
+Never mark an item complete merely because code was written. Distinguish:
+
+```text
+Implemented in repository
+        ≠
+Applied to live Supabase
+        ≠
+Verified end-to-end
+```
+
+All three states matter.

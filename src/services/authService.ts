@@ -6,333 +6,140 @@ export interface AuthResponse {
   error?: string;
 }
 
-const SESSION_STORAGE_KEY = 'hive_authenticated_profile';
+/** Supabase Auth is the only client-side source of authentication state. */
+const profileFromRow = (row: any, authUser: any): UserProfile => ({
+  id: authUser.id,
+  email: row?.email || authUser.email || '',
+  full_name: row?.full_name || authUser.user_metadata?.full_name || 'Citizen',
+  role: (row?.role as UserRole) || 'citizen',
+  created_at: row?.created_at || authUser.created_at,
+  updated_at: row?.updated_at,
+});
+
+const loadProfile = async (authUser: any): Promise<UserProfile | null> => {
+  if (!supabase || !authUser) return null;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, full_name, role, created_at, updated_at')
+    .eq('id', authUser.id)
+    .maybeSingle();
+  if (error) {
+    console.error('Failed to load authenticated profile:', error.message);
+    return null;
+  }
+  return data ? profileFromRow(data, authUser) : null;
+};
 
 export const authService = {
-  /**
-   * Get currently authenticated user from active Supabase session & PostgreSQL profiles table
-   */
   async getCurrentUser(): Promise<UserProfile | null> {
-    if (!isSupabaseConfigured() || !supabase) {
-      return null;
-    }
-
+    if (!isSupabaseConfigured() || !supabase) return null;
     try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError || !session?.user) {
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        return null;
-      }
-
-      const user = session.user;
-
-      // Query authoritative public.profiles table
-      try {
-        const { data: profileData, error: profError } = await supabase
-          .from('profiles')
-          .select('id, email, full_name, role, created_at, updated_at')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (!profError && profileData) {
-          const profile: UserProfile = {
-            id: profileData.id,
-            email: profileData.email || user.email || '',
-            full_name: profileData.full_name || 'Citizen',
-            role: (profileData.role as UserRole) || 'citizen',
-            created_at: profileData.created_at,
-            updated_at: profileData.updated_at,
-          };
-          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(profile));
-          return profile;
-        }
-      } catch (profCatch) {
-        console.warn('Profile fetch catch:', profCatch);
-      }
-
-      // SECURITY: Default fallback role is strictly 'citizen'.
-      // Admin privileges require explicit confirmation in public.profiles.
-      const profile: UserProfile = {
-        id: user.id,
-        email: user.email || '',
-        full_name: user.user_metadata?.full_name || 'Citizen',
-        role: 'citizen',
-        created_at: user.created_at,
-        updated_at: new Date().toISOString(),
-      };
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(profile));
-      return profile;
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session?.user) return null;
+      return await loadProfile(session.user);
     } catch (err) {
-      console.error('Error fetching current session:', err);
+      console.error('Error fetching current authenticated user:', err);
       return null;
     }
   },
 
-  /**
-   * Synchronous cached profile lookup for immediate route rendering
-   */
+  // Deliberately no localStorage-backed synchronous auth state.
   getCurrentUserSync(): UserProfile | null {
-    try {
-      const cached = localStorage.getItem(SESSION_STORAGE_KEY);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch {
-      // ignore
-    }
     return null;
   },
 
-  // Backward compatibility alias for existing admin checks
+  // Synchronous admin state would be an unsafe authorization shortcut.
   getCurrentAdmin(): UserProfile | null {
-    const u = this.getCurrentUserSync();
-    return u && u.role === 'admin' ? u : null;
+    return null;
   },
 
-  /**
-   * Citizen Sign In via Supabase Auth
-   */
   async signIn(email: string, password: string): Promise<AuthResponse> {
-    const cleanEmail = email.trim().toLowerCase();
-
     if (!isSupabaseConfigured() || !supabase) {
-      return {
-        user: null,
-        error: 'Supabase credentials are not configured.',
-      };
+      return { user: null, error: 'Supabase credentials are not configured.' };
     }
-
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
+        email: email.trim().toLowerCase(), password,
       });
-
-      if (error) {
-        return { user: null, error: error.message };
+      if (error || !data.user) {
+        return { user: null, error: error?.message || 'Sign in failed.' };
       }
-
-      if (!data.user) {
-        return { user: null, error: 'Sign in failed. No user returned by Supabase.' };
+      const profile = await loadProfile(data.user);
+      if (!profile) {
+        await supabase.auth.signOut();
+        return { user: null, error: 'Your account profile could not be verified.' };
       }
-
-      // Fetch profile
-      let fullName = data.user.user_metadata?.full_name || 'Citizen';
-      let role: UserRole = 'citizen';
-
-      try {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .maybeSingle();
-
-        if (prof) {
-          fullName = prof.full_name || fullName;
-          role = prof.role === 'admin' ? 'admin' : 'citizen';
-        }
-      } catch {
-        // use metadata
-      }
-
-      const profile: UserProfile = {
-        id: data.user.id,
-        email: data.user.email || cleanEmail,
-        full_name: fullName,
-        role,
-        created_at: data.user.created_at,
-        updated_at: new Date().toISOString(),
-      };
-
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(profile));
       return { user: profile };
     } catch (err: any) {
-      return { user: null, error: err.message || 'Authentication failed' };
+      return { user: null, error: err.message || 'Authentication failed.' };
     }
   },
 
-  /**
-   * Administrator Sign In via Supabase Auth with server-side role verification
-   */
   async adminSignIn(email: string, password: string): Promise<AuthResponse> {
     const result = await this.signIn(email, password);
-    if (result.error || !result.user) {
-      return result;
-    }
-
-    // Strictly enforce admin role
+    if (result.error || !result.user) return result;
     if (result.user.role !== 'admin') {
       await this.signOut();
-      return {
-        user: null,
-        error:
-          'Access Denied: Your account does not possess municipal administrator privileges.',
-      };
+      return { user: null, error: 'Access denied. This account does not have municipal administrator privileges.' };
     }
-
     return result;
   },
 
-  /**
-   * Citizen Sign Up via Supabase Auth (strictly defaults to role: 'citizen')
-   */
   async signUp(email: string, password: string, fullName: string): Promise<AuthResponse> {
-    const cleanEmail = email.trim().toLowerCase();
-
     if (!isSupabaseConfigured() || !supabase) {
-      return {
-        user: null,
-        error: 'Supabase credentials are not configured.',
-      };
+      return { user: null, error: 'Supabase credentials are not configured.' };
     }
-
     try {
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanName = fullName.trim() || 'Citizen';
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
-        options: {
-          data: {
-            full_name: fullName.trim() || 'Citizen',
-            role: 'citizen', // Citizen role strictly enforced on signup
-          },
-        },
+        options: { data: { full_name: cleanName } },
       });
+      if (error) return { user: null, error: error.message };
+      if (!data.user) return { user: null, error: 'Account creation did not return a user.' };
 
-      if (error) {
-        return { user: null, error: error.message };
-      }
-
-      if (data.user) {
-        const profile: UserProfile = {
-          id: data.user.id,
-          email: data.user.email || cleanEmail,
-          full_name: fullName.trim() || 'Citizen',
-          role: 'citizen',
-          created_at: data.user.created_at,
-          updated_at: new Date().toISOString(),
-        };
-
-        // Ensure profile row exists in public.profiles table
-        try {
-          await supabase.from('profiles').upsert({
-            id: data.user.id,
-            email: cleanEmail,
-            full_name: profile.full_name,
-            role: 'citizen',
-          });
-        } catch {
-          // Handled by handle_new_user trigger
-        }
-
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(profile));
-        return { user: profile };
-      }
-
-      return {
-        user: null,
-        error:
-          'Account created! Please check your email to confirm your account if email confirmation is enabled.',
-      };
+      // The database trigger creates the profile and assigns citizen.
+      const profile = await loadProfile(data.user);
+      if (profile) return { user: profile };
+      return { user: null, error: 'Account created. Please verify your email, then sign in.' };
     } catch (err: any) {
-      return { user: null, error: err.message || 'Registration failed' };
+      return { user: null, error: err.message || 'Registration failed.' };
     }
   },
 
-  /**
-   * Citizen / Admin Password Recovery
-   */
   async resetPassword(email: string): Promise<{ success: boolean; error?: string }> {
-    const cleanEmail = email.trim().toLowerCase();
-
     if (!isSupabaseConfigured() || !supabase) {
       return { success: false, error: 'Supabase credentials are not configured.' };
     }
-
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
         redirectTo: `${window.location.origin}/auth/login`,
       });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
+      return error ? { success: false, error: error.message } : { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Password reset request failed.' };
     }
   },
 
-  /**
-   * Terminate Supabase Auth session
-   */
   async signOut(): Promise<void> {
-    if (supabase) {
-      try {
-        await supabase.auth.signOut();
-      } catch (e) {
-        console.warn('Supabase sign out error:', e);
-      }
-    }
-    localStorage.removeItem(SESSION_STORAGE_KEY);
-    localStorage.removeItem('hive_supabase_auth_session');
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) console.warn('Supabase sign out error:', error.message);
   },
 
-  /**
-   * Real-time listener for Supabase authentication state changes
-   */
   onAuthStateChange(callback: (user: UserProfile | null) => void) {
-    if (!supabase) {
-      return () => {};
-    }
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session?.user) {
-          const user = session.user;
-          // Attempt to retrieve full profile
-          let role: UserRole = 'citizen';
-          let fullName = user.user_metadata?.full_name || 'Citizen';
-
-          try {
-            const { data: prof } = await supabase
-              .from('profiles')
-              .select('full_name, role')
-              .eq('id', user.id)
-              .maybeSingle();
-
-            if (prof) {
-              role = (prof.role as UserRole) || role;
-              fullName = prof.full_name || fullName;
-            }
-          } catch {
-            // fallback
-          }
-
-          const profile: UserProfile = {
-            id: user.id,
-            email: user.email || '',
-            full_name: fullName,
-            role,
-            created_at: user.created_at,
-            updated_at: new Date().toISOString(),
-          };
-
-          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(profile));
-          callback(profile);
-        } else {
-          localStorage.removeItem(SESSION_STORAGE_KEY);
+    if (!supabase) return () => {};
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setTimeout(() => {
+        if (!session?.user) {
           callback(null);
+          return;
         }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+        void loadProfile(session.user).then(callback);
+      }, 0);
+    });
+    return () => authListener.subscription.unsubscribe();
   },
 };
