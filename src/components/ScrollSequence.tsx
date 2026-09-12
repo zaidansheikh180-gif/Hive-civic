@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ScrollSequenceProps {
   manifestUrl?: string;
@@ -29,9 +29,15 @@ export const ScrollSequence: React.FC<ScrollSequenceProps> = ({
   const [reducedMotion, setReducedMotion] = useState(false);
   const [error, setError] = useState(false);
 
-  const mobile = useMemo(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
-  []);
+  const [mobile, setMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -171,7 +177,22 @@ export const ScrollSequence: React.FC<ScrollSequenceProps> = ({
     };
   }, [loaded, reducedMotion]);
 
-  if (!manifest || reducedMotion) return null;
+  if (!manifest) return null;
+
+  if (reducedMotion) {
+    const firstFrame = manifest.frames[0]?.startsWith('/')
+      ? manifest.frames[0]
+      : `/frames/${manifest.frames[0]}`;
+    return (
+      <section className="relative w-full border-y border-[#CC9E33]/20" aria-label="HIVE visual sequence">
+        <div className="relative grid min-h-[60vh] place-items-center overflow-hidden">
+          {firstFrame && (
+            <img src={firstFrame} alt="HIVE visual sequence" className="max-h-[60vh] max-w-full object-contain" />
+          )}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
