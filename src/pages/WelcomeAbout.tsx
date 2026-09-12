@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { ScrollSequence } from '../components/ScrollSequence';
 import {
   ArrowRight,
   Shield,
@@ -144,7 +145,10 @@ export const WelcomeAbout: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. THE PROBLEM & WHY HIVE EXISTS */}
+      {/* 2. SCROLL-LINKED VISUAL SEQUENCE */}
+      <ScrollSequence />
+
+      {/* 3. THE PROBLEM & WHY HIVE EXISTS */}
       <section className="py-16 border-t border-[#CC9E33]/20 relative z-10 space-y-8">
         <div className="max-w-3xl space-y-3">
           <div className="text-xs font-mono uppercase tracking-widest text-[#E7C226]">
@@ -191,7 +195,7 @@ export const WelcomeAbout: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. HOW IT WORKS: THE 4-STAGE PIPELINE */}
+      {/* 4. HOW IT WORKS: THE 4-STAGE PIPELINE */}
       <section id="how-it-works" className="py-16 border-t border-[#CC9E33]/20 relative z-10 space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <div className="text-xs font-mono uppercase tracking-widest text-[#E7C226]">

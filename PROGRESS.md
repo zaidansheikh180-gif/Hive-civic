@@ -460,3 +460,14 @@ Verified end-to-end
 ```
 
 All three states matter.
+
+## Scroll-linked visual sequence
+
+- [x] Added reusable HTML-canvas scroll-sequence renderer
+- [x] Added preload-before-playback behavior
+- [x] Added `requestAnimationFrame`-driven frame selection
+- [x] Added responsive canvas resizing and device-pixel-ratio handling
+- [x] Added mobile every-second-frame reduction
+- [x] Added `prefers-reduced-motion` handling
+- [x] Added frame manifest contract under `public/frames/`
+- [ ] Generate the final HIVE frame sequence and populate `public/frames/manifest.json`
