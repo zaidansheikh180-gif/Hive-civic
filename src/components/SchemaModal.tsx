@@ -13,20 +13,20 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   full_name text not null default 'Citizen',
-  role text not null default 'citizen' check (role in ('citizen', 'admin')),
+  role text not null default 'citizen' check (role in ('citizen', 'admin', 'moderator')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.profiles enable row level security;
 
--- Helper function to check if current authenticated user has admin role
+-- Helper function to check if current authenticated user has admin or moderator role
 create or replace function public.is_admin()
 returns boolean as $$
 begin
   return exists (
     select 1 from public.profiles
-    where id = auth.uid() and role = 'admin'
+    where id = auth.uid() and role in ('admin', 'moderator')
   );
 end;
 $$ language plpgsql security definer;
@@ -190,7 +190,63 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- 3. SUGGESTION STATUS HISTORY TABLE (Tamper-evident Civic Audit Trail)
+-- Grants for support counter procedures
+grant execute on function public.increment_support(uuid) to anon, authenticated;
+grant execute on function public.decrement_support(uuid) to anon, authenticated;
+
+-- Privacy-first public view for feed and tracking (hiding contact info and internal notes)
+create or replace view public.public_suggestions as
+select
+  id,
+  reference_id,
+  category,
+  title,
+  description,
+  location_text,
+  photo_path,
+  photo_url,
+  status,
+  support_count,
+  is_anonymous,
+  created_at,
+  updated_at
+from public.suggestions;
+
+grant select on public.public_suggestions to anon, authenticated;
+
+-- 3. SUGGESTION VOTES TABLE (Database-Backed Endorsement Tracking)
+create table if not exists public.suggestion_votes (
+  id uuid primary key default gen_random_uuid(),
+  suggestion_id uuid not null references public.suggestions(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint unique_suggestion_user_vote unique (suggestion_id, user_id)
+);
+
+create index if not exists idx_votes_suggestion on public.suggestion_votes(suggestion_id);
+create index if not exists idx_votes_user on public.suggestion_votes(user_id);
+
+alter table public.suggestion_votes enable row level security;
+
+create policy "Users can read own votes or admins read all"
+  on public.suggestion_votes
+  for select
+  to authenticated
+  using (auth.uid() = user_id or public.is_admin());
+
+create policy "Authenticated users can vote"
+  on public.suggestion_votes
+  for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+create policy "Authenticated users can unvote"
+  on public.suggestion_votes
+  for delete
+  to authenticated
+  using (auth.uid() = user_id or public.is_admin());
+
+-- 4. SUGGESTION STATUS HISTORY TABLE (Tamper-evident Civic Audit Trail)
 create table if not exists public.suggestion_status_history (
   id uuid primary key default gen_random_uuid(),
   suggestion_id uuid not null references public.suggestions(id) on delete cascade,

@@ -128,7 +128,12 @@ export const suggestionService = {
     return (data || []) as Suggestion[];
   },
 
-  async updateSuggestionStatus(id: string, newStatus: SuggestionStatus, adminNote?: string): Promise<{ updated: Suggestion; history: SuggestionStatusHistory[] }> {
+  async updateSuggestionStatus(
+    id: string,
+    newStatus: SuggestionStatus,
+    adminNote?: string,
+    _changedBy?: string
+  ): Promise<{ updated: Suggestion; history: SuggestionStatusHistory[] }> {
     const client = requireClient();
     const { data: updated, error } = await client.from('suggestions').update({
       status: newStatus,
@@ -147,6 +152,26 @@ export const suggestionService = {
     const { data, error } = await client.rpc('add_support', { p_suggestion_id: id });
     if (error) throw new Error(error.message);
     return Number(data ?? 0);
+  },
+
+  async getUserVotedIds(): Promise<string[]> {
+    if (!isSupabaseConfigured() || !supabase) return [];
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return [];
+      const { data, error } = await supabase
+        .from('suggestion_supports')
+        .select('suggestion_id')
+        .eq('user_id', session.user.id);
+      if (error || !data) return [];
+      return data.map((row: any) => row.suggestion_id);
+    } catch {
+      return [];
+    }
+  },
+
+  async getUserSupportedIds(): Promise<string[]> {
+    return this.getUserVotedIds();
   },
 
   async toggleSupport(id: string): Promise<{ supportCount: number; isSupported: boolean }> {

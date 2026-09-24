@@ -69,16 +69,13 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
           onStatusChange(res.suggestion.status);
         }
 
-        // Check vote state
-        try {
-          const stored = localStorage.getItem('hive_client_supported_ids');
-          if (stored) {
-            const ids: string[] = JSON.parse(stored);
+        // Check vote state via database
+        suggestionService
+          .getUserVotedIds()
+          .then((ids) => {
             setHasSupported(ids.includes(res.suggestion.id));
-          }
-        } catch {
-          // ignore
-        }
+          })
+          .catch(() => {});
       } else {
         setSuggestion(null);
         setHistory([]);
@@ -284,18 +281,6 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
               </div>
             </div>
 
-            {/* Official Administrative Notes Banner */}
-            {suggestion.admin_notes && (
-              <div className="p-4 rounded-xl bg-[#E7C226]/10 border border-[#E7C226]/30 space-y-1">
-                <div className="text-xs font-mono uppercase text-[#E7C226] font-bold">
-                  Official Municipal Resolution Note:
-                </div>
-                <p className="text-xs text-neutral-200 leading-relaxed">
-                  {suggestion.admin_notes}
-                </p>
-              </div>
-            )}
-
             {/* Support button */}
             <div className="pt-2 flex items-center justify-between">
               <button
@@ -309,7 +294,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
               </button>
 
               <span className="text-[11px] font-mono text-neutral-400">
-                Authoritative Record ID: {suggestion.id}
+                Official Reference: {suggestion.reference_id}
               </span>
             </div>
           </div>

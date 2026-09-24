@@ -47,20 +47,16 @@ export const CitizenAppFeed: React.FC = () => {
   const [supportedMap, setSupportedMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    authService.getCurrentUser().then(setCurrentUser);
-
-    // Hydrate local support cache for visual indicator
-    try {
-      const stored = localStorage.getItem('hive_client_supported_ids');
-      if (stored) {
-        const ids: string[] = JSON.parse(stored);
-        const map: Record<string, boolean> = {};
-        ids.forEach((id) => (map[id] = true));
-        setSupportedMap(map);
+    authService.getCurrentUser().then((user) => {
+      setCurrentUser(user);
+      if (user) {
+        suggestionService.getUserVotedIds().then((votedIds) => {
+          const map: Record<string, boolean> = {};
+          votedIds.forEach((id) => (map[id] = true));
+          setSupportedMap(map);
+        });
       }
-    } catch {
-      // ignore
-    }
+    });
 
     loadData();
   }, [selectedCategory, selectedStatus, sortBy]);

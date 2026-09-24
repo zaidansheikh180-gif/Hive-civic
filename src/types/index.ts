@@ -40,7 +40,7 @@ export const SUGGESTION_CATEGORIES: readonly SuggestionCategory[] = [
   'Other',
 ] as const;
 
-export type UserRole = 'citizen' | 'admin';
+export type UserRole = 'citizen' | 'admin' | 'moderator';
 
 export interface UserProfile {
   id: string;

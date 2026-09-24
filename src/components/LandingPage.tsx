@@ -118,16 +118,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-[#CC9E33]/20 pb-2">
-                <span className="text-xs text-white">Electricity</span>
-                <span className="text-xs font-mono text-emerald-400">Resolved</span>
+                <span className="text-xs text-white">Street Lighting</span>
+                <span className="text-xs font-mono text-emerald-400">Implemented</span>
               </div>
               <div className="flex justify-between items-center border-b border-[#CC9E33]/20 pb-2">
-                <span className="text-xs text-white">Public Safety</span>
-                <span className="text-xs font-mono text-[#E7C226]">Review</span>
+                <span className="text-xs text-white">Roads & Footpaths</span>
+                <span className="text-xs font-mono text-[#E7C226]">Under Review</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-white">Sanitation</span>
-                <span className="text-xs font-mono text-[#CC9E33]">Pending</span>
+                <span className="text-xs text-white">Water & Sanitation</span>
+                <span className="text-xs font-mono text-[#CC9E33]">Accepted</span>
               </div>
             </div>
           </div>

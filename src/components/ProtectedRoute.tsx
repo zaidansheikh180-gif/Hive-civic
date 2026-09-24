@@ -59,8 +59,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Requires admin role
-  if (requireAdmin && user.role !== 'admin') {
+  // Requires administrative role (admin or moderator)
+  if (requireAdmin && user.role !== 'admin' && user.role !== 'moderator') {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6">
         <div className="glass-panel max-w-md p-8 text-center border border-red-500/30 space-y-4">

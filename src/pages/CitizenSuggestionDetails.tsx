@@ -44,18 +44,12 @@ export const CitizenSuggestionDetails: React.FC = () => {
       })
       .finally(() => setLoading(false));
 
-    // Check support state
-    try {
-      const stored = localStorage.getItem('hive_client_supported_ids');
-      if (stored) {
-        const ids: string[] = JSON.parse(stored);
-        if (id && ids.includes(id)) {
-          setHasSupported(true);
-        }
+    // Check support state via database
+    suggestionService.getUserVotedIds().then((votedIds) => {
+      if (id && votedIds.includes(id)) {
+        setHasSupported(true);
       }
-    } catch {
-      // ignore
-    }
+    }).catch(() => {});
   }, [id]);
 
   const handleToggleSupport = async () => {
