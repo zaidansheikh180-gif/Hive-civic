@@ -4,8 +4,20 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
+  // Google AI Studio stores configured secrets in the server-side process
+  // environment. Vite normally exposes only VITE_* values from .env files,
+  // so explicitly bridge the two public Supabase client values into the
+  // browser bundle at build/dev time. These are intentionally the public
+  // Supabase URL and anon/publishable key; never use a service-role key here.
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+
   return {
     plugins: [react(), tailwindcss()],
+    define: {
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseAnonKey),
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
