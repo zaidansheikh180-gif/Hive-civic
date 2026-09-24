@@ -160,16 +160,20 @@ The generator uses an alphabet that avoids visually ambiguous characters.
 - Row Level Security (RLS)
 - Supabase Storage
 
-### Environment
+### Environment & AI Studio Secret Bridging
 
-The browser client expects:
+Google AI Studio injects user secrets as server process environment variables (`process.env`). In a client-side Vite single-page application (SPA), the browser runtime does not have direct access to server-side `process.env`. Vite bundles environment variables into the client bundle at build and dev time.
+
+To ensure seamless operation in AI Studio, `vite.config.ts` uses `loadEnv` and bridges the public Supabase configuration into the client bundle via Vite's `define`:
 
 ```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
+VITE_SUPABASE_URL (or SUPABASE_URL)
+VITE_SUPABASE_ANON_KEY (or SUPABASE_ANON_KEY / SUPABASE_PUBLISHABLE_KEY)
 ```
 
-Only the public/anon client key belongs in browser code. A service-role/secret key must never be shipped to the frontend.
+In the client codebase, `src/lib/supabaseClient.ts` directly consumes `import.meta.env.VITE_SUPABASE_URL` and `import.meta.env.VITE_SUPABASE_ANON_KEY` (with safe fallbacks for alternative names and node execution), enabling Vite's AST static replacement in both dev mode and production builds.
+
+Security enforcement: Only the public/anon publishable key is ever bridged or exposed. A service-role or secret key must never be added to frontend code or bundle definitions. A safe diagnostic utility (`getSupabaseConfigStatus` / `window.__HIVE_SUPABASE_DIAGNOSTICS__`) reports `'configured'` or `'not configured'` without ever leaking credential values.
 
 ---
 

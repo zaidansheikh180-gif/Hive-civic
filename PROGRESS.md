@@ -20,7 +20,7 @@ The project has moved beyond the initial prototype architecture. The current pri
 - [x] React + TypeScript + Vite application
 - [x] React Router
 - [x] Supabase client
-- [x] Supabase environment-variable configuration
+- [x] Supabase environment-variable configuration (AI Studio secret bridging resolved via Vite define & direct import.meta.env)
 - [x] PostgreSQL schema baseline
 - [x] Dedicated service layer
 - [x] Dedicated 3D subsystem

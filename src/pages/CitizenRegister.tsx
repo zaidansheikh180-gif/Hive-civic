@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { getSupabaseConfigStatus } from '../services/supabaseClient';
 import { User, Mail, Lock, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const CitizenRegister: React.FC = () => {
@@ -11,6 +12,8 @@ export const CitizenRegister: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const status = getSupabaseConfigStatus();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +57,7 @@ export const CitizenRegister: React.FC = () => {
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#E7C226]/10 blur-2xl rounded-full pointer-events-none" />
 
         {/* Header */}
-        <div className="text-center space-y-2 mb-8">
+        <div className="text-center space-y-2 mb-6">
           <div className="w-12 h-12 rounded-2xl bg-[#E7C226]/10 border border-[#E7C226]/40 flex items-center justify-center text-[#E7C226] mx-auto shadow-[0_0_20px_rgba(231,194,38,0.25)]">
             <User className="w-6 h-6" />
           </div>
@@ -64,6 +67,31 @@ export const CitizenRegister: React.FC = () => {
           <p className="text-xs text-neutral-400 font-mono">
             Register to submit verified municipal proposals and track resolution
           </p>
+
+          {/* Safe Diagnostics Pill */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 text-[11px] font-mono px-3 py-0.5 rounded-full border ${
+                status.SUPABASE_CLIENT === 'initialized'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  status.SUPABASE_CLIENT === 'initialized'
+                    ? 'bg-emerald-400'
+                    : 'bg-amber-400'
+                }`}
+              />
+              <span>Client: {status.SUPABASE_CLIENT}</span>
+            </span>
+
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-700/60 text-neutral-300">
+              <span className="text-neutral-500">Host:</span>
+              <span className="truncate max-w-[180px]">{status.SUPABASE_HOSTNAME}</span>
+            </span>
+          </div>
         </div>
 
         {/* Error Alert */}

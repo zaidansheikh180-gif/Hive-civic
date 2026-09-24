@@ -1,10 +1,31 @@
 import { UserProfile, UserRole } from '../types';
-import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { supabase, isSupabaseConfigured, getSupabaseHostname } from './supabaseClient';
 
 export interface AuthResponse {
   user: UserProfile | null;
   error?: string;
 }
+
+/**
+ * Formats authentication errors.
+ * Preserves actual Supabase backend error responses (e.g. invalid credentials, unconfirmed email)
+ * while providing actionable diagnostics if a browser network / DNS failure ("Failed to fetch") occurs.
+ */
+export const formatAuthError = (errOrMessage: any): string => {
+  const msg =
+    typeof errOrMessage === 'string'
+      ? errOrMessage
+      : errOrMessage?.message || 'Authentication operation failed.';
+
+  if (
+    msg.toLowerCase().includes('failed to fetch') ||
+    msg.toLowerCase().includes('fetch failed')
+  ) {
+    const hostname = getSupabaseHostname();
+    return `Network connection error (${msg}): The browser could not reach "${hostname}". The domain does not resolve (DNS NXDOMAIN / net::ERR_NAME_NOT_RESOLVED) or is unreachable. Please verify in your Supabase Dashboard that the project is active (not paused or deleted) and that your VITE_SUPABASE_URL secret matches the project reference.`;
+  }
+  return msg;
+};
 
 /** Supabase Auth is the only client-side source of authentication state. */
 const profileFromRow = (row: any, authUser: any): UserProfile => ({
@@ -62,7 +83,7 @@ export const authService = {
         email: email.trim().toLowerCase(), password,
       });
       if (error || !data.user) {
-        return { user: null, error: error?.message || 'Sign in failed.' };
+        return { user: null, error: formatAuthError(error?.message || 'Sign in failed.') };
       }
       const profile = await loadProfile(data.user);
       if (!profile) {
@@ -71,7 +92,7 @@ export const authService = {
       }
       return { user: profile };
     } catch (err: any) {
-      return { user: null, error: err.message || 'Authentication failed.' };
+      return { user: null, error: formatAuthError(err.message || 'Authentication failed.') };
     }
   },
 
@@ -97,7 +118,7 @@ export const authService = {
         password,
         options: { data: { full_name: cleanName } },
       });
-      if (error) return { user: null, error: error.message };
+      if (error) return { user: null, error: formatAuthError(error.message) };
       if (!data.user) return { user: null, error: 'Account creation did not return a user.' };
 
       // The database trigger creates the profile and assigns citizen.
@@ -105,7 +126,7 @@ export const authService = {
       if (profile) return { user: profile };
       return { user: null, error: 'Account created. Please verify your email, then sign in.' };
     } catch (err: any) {
-      return { user: null, error: err.message || 'Registration failed.' };
+      return { user: null, error: formatAuthError(err.message || 'Registration failed.') };
     }
   },
 
@@ -117,9 +138,9 @@ export const authService = {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
         redirectTo: `${window.location.origin}/auth/login`,
       });
-      return error ? { success: false, error: error.message } : { success: true };
+      return error ? { success: false, error: formatAuthError(error.message) } : { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Password reset request failed.' };
+      return { success: false, error: formatAuthError(err.message || 'Password reset request failed.') };
     }
   },
 

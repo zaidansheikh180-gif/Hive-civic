@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
-import { isSupabaseConfigured } from '../services/supabaseClient';
+import { isSupabaseConfigured, getSupabaseConfigStatus } from '../services/supabaseClient';
 import { SchemaModal } from '../components/SchemaModal';
 import {
   ShieldCheck,
@@ -24,6 +24,7 @@ export const AdminLogin: React.FC = () => {
   const [showSchemaModal, setShowSchemaModal] = useState(false);
 
   const isLiveSupabase = isSupabaseConfigured();
+  const status = getSupabaseConfigStatus();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +62,7 @@ export const AdminLogin: React.FC = () => {
           </p>
 
           {/* Supabase Status Pill */}
-          <div className="pt-2 flex items-center justify-center gap-2">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 text-[11px] font-mono px-3 py-1 rounded-full border ${
                 isLiveSupabase
@@ -74,7 +75,12 @@ export const AdminLogin: React.FC = () => {
                   isLiveSupabase ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
                 }`}
               />
-              <span>{isLiveSupabase ? 'Supabase Auth & Database Active' : 'Supabase Not Configured'}</span>
+              <span>{isLiveSupabase ? 'Client Initialized' : 'Supabase Not Configured'}</span>
+            </span>
+
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 rounded-full bg-neutral-900 border border-neutral-700/60 text-neutral-300">
+              <span className="text-neutral-500">Host:</span>
+              <span className="truncate max-w-[180px]">{status.SUPABASE_HOSTNAME}</span>
             </span>
           </div>
         </div>

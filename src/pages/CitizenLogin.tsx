@@ -1,7 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import {
+  getSupabaseConfigStatus,
+  testSupabaseReachability,
+  ReachabilityResult,
+} from '../services/supabaseClient';
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+  Activity,
+  CheckCircle2,
+  RefreshCw,
+  ExternalLink,
+} from 'lucide-react';
 
 export const CitizenLogin: React.FC = () => {
   const navigate = useNavigate();
@@ -10,8 +25,21 @@ export const CitizenLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reachability, setReachability] = useState<ReachabilityResult | null>(null);
+  const [testingReachability, setTestingReachability] = useState(false);
 
+  const status = getSupabaseConfigStatus();
   const destination = (location.state as any)?.from?.pathname || '/app';
+
+  const handleTestConnection = async () => {
+    setTestingReachability(true);
+    try {
+      const res = await testSupabaseReachability();
+      setReachability(res);
+    } finally {
+      setTestingReachability(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +55,13 @@ export const CitizenLogin: React.FC = () => {
       const res = await authService.signIn(email, password);
       if (res.error) {
         setErrorMessage(res.error);
+        // Automatically check reachability if network error occurred
+        if (
+          res.error.toLowerCase().includes('failed to fetch') ||
+          res.error.toLowerCase().includes('network')
+        ) {
+          void handleTestConnection();
+        }
       } else if (res.user) {
         navigate(destination, { replace: true });
       }
@@ -44,7 +79,7 @@ export const CitizenLogin: React.FC = () => {
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#E7C226]/10 blur-2xl rounded-full pointer-events-none" />
 
         {/* Header */}
-        <div className="text-center space-y-2 mb-8">
+        <div className="text-center space-y-2 mb-6">
           <div className="w-12 h-12 rounded-2xl bg-[#E7C226]/10 border border-[#E7C226]/40 flex items-center justify-center text-[#E7C226] mx-auto shadow-[0_0_20px_rgba(231,194,38,0.25)]">
             <Lock className="w-6 h-6" />
           </div>
@@ -54,13 +89,89 @@ export const CitizenLogin: React.FC = () => {
           <p className="text-xs text-neutral-400 font-mono">
             Enter HIVE to submit, endorse & track municipal proposals
           </p>
+
+          {/* Safe Diagnostics Pill */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 text-[11px] font-mono px-3 py-0.5 rounded-full border ${
+                status.SUPABASE_CLIENT === 'initialized'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  status.SUPABASE_CLIENT === 'initialized'
+                    ? 'bg-emerald-400'
+                    : 'bg-amber-400'
+                }`}
+              />
+              <span>Client: {status.SUPABASE_CLIENT}</span>
+            </span>
+
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-700/60 text-neutral-300">
+              <span className="text-neutral-500">Host:</span>
+              <span className="truncate max-w-[180px]">{status.SUPABASE_HOSTNAME}</span>
+            </span>
+          </div>
         </div>
 
-        {/* Error Alert */}
+        {/* Error Alert with Diagnostics */}
         {errorMessage && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 text-xs text-red-300">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400 mt-0.5" />
-            <div className="leading-relaxed">{errorMessage}</div>
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-200 space-y-2.5">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400 mt-0.5" />
+              <div className="leading-relaxed font-sans">{errorMessage}</div>
+            </div>
+
+            {/* Reachability diagnostics details if available */}
+            {reachability && (
+              <div className="mt-2 pt-2 border-t border-red-500/20 text-[11px] font-mono space-y-1 text-neutral-300 bg-black/40 p-2.5 rounded-lg">
+                <div className="text-neutral-400 font-bold uppercase tracking-wider text-[10px]">
+                  Direct Network Ping Result
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-400">Target Host:</span>
+                  <span className="text-white font-bold">{reachability.hostname}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-400">Network Reachable:</span>
+                  <span className={reachability.reachable ? 'text-emerald-400' : 'text-red-400 font-bold'}>
+                    {reachability.reachable ? 'Reachable (200 OK)' : 'Unreachable (Failed to connect)'}
+                  </span>
+                </div>
+                {reachability.error && (
+                  <div className="text-red-300 break-all pt-1">
+                    <span className="text-neutral-400">Reason: </span>
+                    {reachability.isDnsOrNetworkFailure
+                      ? 'DNS NXDOMAIN / Host name not resolved. The domain does not exist or the project is paused/deleted.'
+                      : reachability.error}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="pt-1 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={testingReachability}
+                className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#E7C226] hover:underline"
+              >
+                <RefreshCw className={`w-3 h-3 ${testingReachability ? 'animate-spin' : ''}`} />
+                <span>{testingReachability ? 'Pinging Supabase...' : 'Test Connection'}</span>
+              </button>
+
+              <a
+                href="https://supabase.com/dashboard"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-400 hover:text-white"
+              >
+                <span>Supabase Dashboard</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            </div>
           </div>
         )}
 
