@@ -9,8 +9,18 @@ export default defineConfig(() => {
   // so explicitly bridge the two public Supabase client values into the
   // browser bundle at build/dev time. These are intentionally the public
   // Supabase URL and anon/publishable key; never use a service-role key here.
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+  // AI Studio may expose user-managed secrets without the VITE_ prefix.
+  // Support both naming conventions so the browser bundle receives the
+  // public Supabase client configuration regardless of how the secret is named.
+  const supabaseUrl =
+    process.env.VITE_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    '';
+  const supabaseAnonKey =
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_PUBLISHABLE_KEY ||
+    '';
 
   return {
     plugins: [react(), tailwindcss()],
