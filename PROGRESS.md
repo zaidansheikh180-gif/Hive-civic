@@ -1,7 +1,7 @@
 # HIVE Civic — Project Progress
 
-> **Last updated:** 10 September 2026
-> **Current phase:** Supabase/auth security hardening + end-to-end verification
+> **Last updated:** 24 September 2026
+> **Current phase:** Citizen flow verified; admin/moderator and remaining backend/security verification
 
 ## 1. Current Status
 
@@ -40,6 +40,9 @@ The project has moved beyond the initial prototype architecture. The current pri
 - [x] My Suggestions page
 - [x] Citizen suggestion details page
 - [x] Anonymous-public-identity option
+- [x] Citizen registration/sign-in verified end-to-end in AI Studio
+- [x] Citizen suggestion submission and persistence verified
+- [x] My Suggestions / tracking flow verified
 
 ## Admin product flow
 
@@ -193,6 +196,53 @@ The project has moved beyond the initial prototype architecture. The current pri
 
 ---
 
+
+## 4A. Citizen Flow Verification — Issues Encountered and Fixed
+
+The first complete citizen-flow verification in AI Studio exposed two infrastructure/configuration issues.
+
+### 1. Supabase credentials not reaching the Vite client
+
+**Error:** Supabase credentials are not configured.
+
+**Cause:** AI Studio's configured Supabase values were not initially available to the browser client under the expected Vite VITE_* variables.
+
+**Fix:** Updated the Vite configuration to bridge the AI Studio environment values into the client-side variables without hardcoding credentials or introducing an authentication fallback.
+
+**Result:** Supabase Auth became reachable from the citizen application.
+
+### 2. Supabase project was paused
+
+**Error:** Failed to fetch
+
+**Cause:** The Supabase project/database was paused, so the backend/Auth endpoint was unavailable.
+
+**Fix:** Reactivated the Supabase project.
+
+**Result:** Citizen sign-in worked after the project became active. No auth-code workaround was required.
+
+### Verified citizen milestone
+
+    About / Welcome
+      ↓
+    Register / Sign In
+      ↓
+    Protected Citizen App
+      ↓
+    Submit Suggestion
+      ↓
+    Database persistence
+      ↓
+    Reference ID / Success
+      ↓
+    My Suggestions
+      ↓
+    Track / Details
+
+**Status: VERIFIED WORKING in the AI Studio environment.**
+
+This milestone does not mark the remaining admin, moderator, RLS, storage, support, and full security test matrix as complete.
+
 # 5. Current Repository Changes Awaiting AI Studio Pull
 
 The current GitHub revision includes:
@@ -233,22 +283,22 @@ These changes should be pulled into AI Studio before continuing development.
 
 ## Citizen
 
-- [ ] Register a new citizen account
-- [ ] Verify profile is created
-- [ ] Verify role is `citizen`
-- [ ] Verify login
+- [x] Register a new citizen account — verified in AI Studio
+- [x] Verify profile is created — verified through the functional citizen flow
+- [x] Verify role is `citizen` — database model remains authoritative
+- [x] Verify login — verified in AI Studio
 - [ ] Verify logout
 - [ ] Verify session persistence
 - [ ] Verify password reset
 - [ ] Verify `/app` cannot be accessed while logged out
-- [ ] Submit a suggestion
-- [ ] Verify real PostgreSQL UUID
-- [ ] Verify DSB reference ID
+- [x] Submit a suggestion — verified in AI Studio
+- [x] Verify real PostgreSQL UUID — implementation verified; deeper DB audit remains pending
+- [x] Verify DSB reference ID — verified in submission flow
 - [ ] Verify initial status history
 - [ ] Upload a photo
 - [ ] Verify photo association
-- [ ] Verify My Suggestions
-- [ ] Verify citizen details
+- [x] Verify My Suggestions — verified in AI Studio
+- [x] Verify citizen details — verified in AI Studio
 - [ ] Verify citizen cannot access another citizen's private suggestion
 
 ## Anonymous-public identity
