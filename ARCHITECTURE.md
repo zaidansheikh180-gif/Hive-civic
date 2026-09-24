@@ -1,7 +1,7 @@
 # HIVE — Digital Suggestion Box
 ## Canonical Architecture & Project Context
 
-> **Last architecture update:** 10 September 2026
+> **Last architecture update:** 24 September 2026
 >
 > This document is the canonical technical context for HIVE. It describes the repository as it actually exists on `main`, the security/architecture decisions that have been made, the problems that were discovered and solved, and the remaining target work. Future LLMs must inspect the code before assuming a `TARGET` item is implemented.
 
@@ -381,9 +381,10 @@ Current roles are:
 ```text
 citizen
 admin
+moderator
 ```
 
-New registrations must become `citizen`.
+New registrations must become `citizen`. Moderator/admin privileges are assigned through the database role model; normal public signup cannot self-escalate.
 
 The database trigger `handle_new_user()` is responsible for enforcing this rather than trusting browser-provided role metadata.
 
@@ -434,7 +435,7 @@ There is historical duplication in the repository naming (`src/lib/supabaseClien
 id          uuid → auth.users.id
 email       text
 full_name   text
-role        citizen | admin
+role        citizen | admin | moderator
 created_at
 tupdated_at
 ```
@@ -1398,6 +1399,57 @@ Suggestion persistence
 This is the new baseline that AI Studio should pull before continuing development.
 
 ---
+
+
+## 38A. Citizen Flow Verification — Issues Encountered and Resolved
+
+The citizen experience was verified in AI Studio on 24 September 2026. Two environment/infrastructure issues occurred during verification.
+
+### Issue 1 — Supabase credentials were reported as not configured
+
+**Observed error:**
+
+    Supabase credentials are not configured.
+
+**Cause:** The Supabase values configured for AI Studio were not initially reaching the Vite browser client under the expected VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY build-time variables.
+
+**Resolution:** The Vite configuration was updated to bridge the AI Studio-provided environment values into the client-side Vite variables without hardcoding credentials.
+
+**Security outcome:** No hardcoded credentials, service-role key, mock authentication, or localStorage authentication fallback was introduced.
+
+### Issue 2 — Sign-in returned Failed to fetch
+
+**Observed error:**
+
+    Failed to fetch
+
+**Cause:** The Supabase project/database was paused. The application could attempt Supabase Auth, but the Supabase backend was not active.
+
+**Resolution:** The Supabase project was reactivated. Citizen sign-in then succeeded without changing the authentication implementation.
+
+**Lesson:** A generic browser Failed to fetch during Supabase Auth does not necessarily indicate an application-code defect. Supabase project availability must be checked before changing auth code.
+
+### Result
+
+The verified citizen workflow is now:
+
+    About / Welcome
+      ↓
+    Citizen Registration / Sign In
+      ↓
+    Protected Citizen App
+      ↓
+    Submit Suggestion
+      ↓
+    Supabase persistence
+      ↓
+    Reference ID / submission confirmation
+      ↓
+    My Suggestions
+      ↓
+    Track / view suggestion
+
+The citizen flow is considered functionally working in the verified AI Studio environment. This does not mean every pending RLS, storage, support, moderator, or admin test is complete.
 
 ## 39. One-Page Mental Model
 
