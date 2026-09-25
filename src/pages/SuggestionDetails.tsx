@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { useParams, Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
 import { Suggestion, SuggestionStatus, SuggestionStatusHistory } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
@@ -34,7 +33,6 @@ const STATUS_OPTIONS: { key: SuggestionStatus; label: string; desc: string }[] =
 
 export const SuggestionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
   const [history, setHistory] = useState<SuggestionStatusHistory[]>([]);
@@ -48,14 +46,10 @@ export const SuggestionDetails: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authService.getCurrentAdmin()) {
-      navigate('/admin/login');
-      return;
-    }
     if (id) {
       loadData(id);
     }
-  }, [id, navigate]);
+  }, [id]);
 
   const loadData = async (targetId: string) => {
     setLoading(true);
@@ -78,14 +72,10 @@ export const SuggestionDetails: React.FC = () => {
     setSuccessMsg(null);
 
     try {
-      const currentAdmin = authService.getCurrentAdmin();
-      const adminName = currentAdmin?.full_name || 'Municipal Administrator';
-
       const res = await suggestionService.updateSuggestionStatus(
         suggestion.id,
         newStatus,
-        adminNote.trim() || undefined,
-        adminName
+        adminNote.trim() || undefined
       );
 
       setSuggestion(res.updated);
