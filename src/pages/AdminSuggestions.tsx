@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
 import { Suggestion, SuggestionCategory, SuggestionStatus } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
@@ -42,21 +41,12 @@ const STATUSES: ('All' | SuggestionStatus)[] = [
 ];
 
 export const AdminSuggestions: React.FC = () => {
-  const navigate = useNavigate();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'support'>('newest');
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!authService.getCurrentAdmin()) {
-      navigate('/admin/login');
-      return;
-    }
-    loadSuggestions();
-  }, [navigate]);
 
   const loadSuggestions = async () => {
     setLoading(true);
