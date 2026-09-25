@@ -46,17 +46,21 @@ export const AdminDashboard: React.FC = () => {
   const [recentList, setRecentList] = useState<Suggestion[]>([]);
 
   useEffect(() => {
-    const current = authService.getCurrentAdmin();
-    if (!current) {
-      navigate('/admin/login');
-      return;
-    }
-    setAdmin(current);
-
-    suggestionService.getDashboardStats().then(setStats);
-    suggestionService.getSuggestions({ sortBy: 'newest' }).then((items) => {
-      setRecentList(items.slice(0, 5));
+    let active = true;
+    void authService.getCurrentUser().then((current) => {
+      if (!active) return;
+      // ProtectedRoute guards this page, but identity still comes from the verified profile.
+      if (!current || (current.role !== 'admin' && current.role !== 'moderator')) {
+        navigate('/admin/login');
+        return;
+      }
+      setAdmin(current);
+      void suggestionService.getDashboardStats().then((value) => { if (active) setStats(value); });
+      void suggestionService.getSuggestions({ sortBy: 'newest' }).then((items) => {
+        if (active) setRecentList(items.slice(0, 5));
+      });
     });
+    return () => { active = false; };
   }, [navigate]);
 
   if (!admin) return null;
