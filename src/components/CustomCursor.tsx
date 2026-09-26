@@ -23,7 +23,7 @@ export const CustomCursor: React.FC = () => {
   useEffect(() => {
     // Only enable cursor reveal on devices with a mouse / fine pointer
     const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    if (!isFinePointer) return;
+    if (!isFinePointer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
@@ -197,4 +197,3 @@ export const CustomCursor: React.FC = () => {
 };
 
 export const CursorReveal = CustomCursor;
-
