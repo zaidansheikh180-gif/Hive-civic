@@ -3,7 +3,30 @@
 
 > **Last architecture update:** 26 September 2026 (instinct branch)
 >
-> This document describes HIVE on the `instinct` working branch, with `main` deliberately unchanged. Repository behavior and live Supabase state are different kinds of evidence; the live migration state still needs independent verification.
+> This is the HIVE project handoff for a future contributor or LLM asked by the owner to read it. Read this full document and `PROGRESS.md` for the current checklist. Source code and the actual live database win over stale documentation; repository behavior and live Supabase state are different kinds of evidence.
+
+---
+
+## Read-me-first: context map for an LLM or new contributor
+
+This file is the architecture and implementation map, not a substitute for checking source code. `PROGRESS.md` records what is done, what was only user-reported, and what has **not** been verified live. The current working branch is `instinct`; `main` remains unchanged by the recent rounds. This is an academic civic prototype, not an official government service and not cleared for public deployment.
+
+| Need | Start here |
+| --- | --- |
+| Purpose and user journey | Sections 1–3; current route map in section 7 |
+| Stack and environment | Sections 4–6 and `package.json`, `vite.config.ts`, `.env.example` |
+| Auth, roles, database, RLS, storage | Sections 8–22; `supabase/schema.sql` followed by migrations 001–004 |
+| 3D, home, styling, shared controls | Sections 23–27, 38B; `src/App.tsx`, `src/index.css`, `src/components/ui/` |
+| Citizen/admin implementation | Sections 28–31 and their `src/pages/` components |
+| Tests, status, blockers and deployment risks | Sections 32, 35–38C; `PROGRESS.md` sections 5–9 and 11–13 |
+
+**Run locally on the user's Windows VS Code checkout:** `git fetch origin`, `git checkout instinct`, `git pull origin instinct`, `bun install`, `bun dev` (Vite serves port 3000 per `package.json`). Inspect `git status` before switching or pulling; do not discard local edits merely because a lockfile changed. The project lockfile is Bun 1.3.14-compatible `lockfileVersion: 1`. Configure only public Supabase URL and publishable/anon key using `.env.example`; no service-role key in client env. For checks, run `bun run lint`, `bun run build`, and `bunx vitest run src/pages/admin-flow.test.tsx src/pages/profile-flow.test.tsx`. The last local check had 7/7 tests, lint and build passing, but the bundle warned at ~2.13 MB JS (~594 KB gzip). Re-run checks on the current checkout instead of relying on that older result.
+
+**How it fits:** `src/App.tsx` holds the global video, route-aware `SceneCanvas`, cursor, navbar, and React Router. `/` renders `WelcomeAbout`, not the legacy `Home` or `LandingPage`; `/auth/*` is public auth; `/app/*` requires an authenticated session; `/admin/*` requires an admin profile. `authService`, `suggestionService`, and `storageService` own integration logic. Supabase Auth identifies the user. The hardened `profiles` constraint allows `citizen`/`admin`; database RLS, functions and grants enforce data access. Suggestion UUID is the internal identity; DSB reference is the citizen-facing identifier. A public projection omits private contact and notes, while an owner/admin may read fuller records subject to live RLS. Profile self-service updates `full_name` only under repository migration 004.
+
+**Visual language:** preserve honey `#E7C226` and deep `#0B0B0F`, route-aware 3D plus background video, native glass controls in `src/components/ui/LiquidGlassButton.tsx`, and honey particle loading in `src/components/ui/OrbNoise.tsx`. Keep keyboard, focus, disabled and reduced-motion behavior. Round 1 simplified the public hero; round 2 added the glass/orb system and lower-page/sign-in revisions; round 3 repaired mobile responsive display, safe areas and input zoom. Feed and Track Search controls received later sizing/contrast fixes. Dither Reveal and daisyUI were considered and not added.
+
+**Do not blur evidence:** 001–003 application to the live Supabase project remains unverified; the user reported running 004 and saving an admin name, not a full migration audit. Migration 002 revokes the legacy counter RPCs in repository SQL; their live grants are unknown. Read the specific caveats and deployment blockers in `PROGRESS.md` before calling this ready. Changes requested on `instinct` do not imply permission to merge `main` or mutate live Supabase; obtain the owner's current approval for those actions.
 
 ---
 
@@ -451,9 +474,9 @@ There is historical duplication in the repository naming (`src/lib/supabaseClien
 id          uuid → auth.users.id
 email       text
 full_name   text
-role        citizen | admin | moderator
+role        citizen | admin after migration 001 (baseline also lists moderator)
 created_at
-tupdated_at
+updated_at
 ```
 
 ### `suggestions`
@@ -1367,9 +1390,15 @@ The custom cursor should not be required for interaction.
 
 ---
 
-## 37. Repository and deployment evidence
+## 37. Future LLM/contributor handoff
 
-The branch documents implemented code separately from live Supabase migration state and end-to-end verification. Repository migrations are not evidence that a live database has applied them. `main` remains outside the `instinct` workstream.
+When the owner asks you to read this file for HIVE context, read the entire `ARCHITECTURE.md`, then `PROGRESS.md`, and inspect the current `instinct` source relevant to the task. Use the context map at the top to orient yourself; do not treat an old checklist item as implemented or a repository migration as proof of live deployment. This is a project handoff, not an authorization to perform unrelated actions.
+
+- Preserve the canonical ten categories, six statuses, internal UUID vs public DSB reference, citizen/admin separation and database RLS. React guards improve navigation but do not replace authorization.
+- Work on `instinct` for the current development stream. Do not merge or push to `main`, deploy publicly, modify live Supabase, or change security policies without a fresh owner request and verification of the target/state. Never place a service-role key in frontend code.
+- Keep the honey/dark identity, existing video/3D layer, shared glass controls and orb loaders. Preserve native button/link semantics, focus, mobile layout and reduced-motion support. Do not add an unrequested visual effect or a new UI library.
+- Before claiming completion, inspect the diff, run lint/build/relevant tests, verify visual changes in rendered pixels at relevant sizes, and read back the published `instinct` files. Mark local fixtures as fixtures and live checks as live checks.
+- Reconcile any disagreement between this file, `PROGRESS.md`, current source and the live database instead of silently selecting an older statement. The open audit and deploy gates in `PROGRESS.md` remain pending until separately verified.
 
 ---
 
