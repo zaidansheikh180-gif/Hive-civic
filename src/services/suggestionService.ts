@@ -19,7 +19,7 @@ export const generateReferenceId = (): string => {
 export interface SchemaStatus { tablesExist: boolean; message?: string; }
 export interface CreateSuggestionInput {
   category: SuggestionCategory; title: string; description: string; location_text: string;
-  photo_path?: string | null; photo_url?: string | null; photo_file?: File | null;
+  photo_file?: File | null;
   contact_name?: string | null; contact_email?: string | null; contact_phone?: string | null;
   is_anonymous?: boolean;
 }
@@ -29,7 +29,14 @@ const requireClient = () => {
   return supabase;
 };
 
-const PUBLIC_FIELDS = 'id, reference_id, category, title, description, location_text, photo_url, is_anonymous, status, support_count, created_at, updated_at';
+const PUBLIC_FIELDS = 'id, reference_id, category, title, description, location_text, photo_url, is_anonymous, status, support_count, created_at, updated_at, photo_path';
+
+// New uploads store only a verified object path; legacy rows can still use their saved URL.
+const OWNER_SCOPED_PHOTO_PATH = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.(?:jpg|png)$/i;
+const withPhotoUrl = (suggestion: Suggestion): Suggestion => {
+  if (!suggestion.photo_path || !supabase || !OWNER_SCOPED_PHOTO_PATH.test(suggestion.photo_path)) return suggestion;
+  return { ...suggestion, photo_url: supabase.storage.from('suggestion-photos').getPublicUrl(suggestion.photo_path).data.publicUrl };
+};
 
 export const suggestionService = {
   async checkSchemaStatus(): Promise<SchemaStatus> {
@@ -65,17 +72,17 @@ export const suggestionService = {
 
     let suggestion = data as Suggestion;
     if (input.photo_file) {
-      const upload = await uploadSuggestionPhoto(input.photo_file, data.id);
+      const upload = await uploadSuggestionPhoto(input.photo_file, data.id, session.user.id);
       if (upload.error) throw new Error(upload.error);
-      if (upload.path && upload.url) {
+      if (upload.path) {
         const { data: attached, error: attachError } = await client.rpc('attach_suggestion_photo', {
-          p_suggestion_id: data.id, p_photo_path: upload.path, p_photo_url: upload.url,
+          p_suggestion_id: data.id, p_photo_path: upload.path,
         });
         if (attachError) throw new Error(attachError.message);
         if (attached) suggestion = attached as Suggestion;
       }
     }
-    return { suggestion, referenceId: suggestion.reference_id };
+    return { suggestion: withPhotoUrl(suggestion), referenceId: suggestion.reference_id };
   },
 
   async getSuggestionByReference(referenceId: string): Promise<{ suggestion: Suggestion; history: SuggestionStatusHistory[] } | null> {
@@ -88,7 +95,7 @@ export const suggestionService = {
       .select('id, suggestion_id, old_status, new_status, note, created_at').eq('suggestion_id', data.id).order('created_at', { ascending: true });
     if (historyError) throw new Error(historyError.message);
     return {
-      suggestion: data as Suggestion,
+      suggestion: withPhotoUrl(data as Suggestion),
       history: (history || []).map((row: any) => ({ ...row, changed_by: 'HIVE Civic Workflow' })) as SuggestionStatusHistory[],
     };
   },
@@ -101,14 +108,14 @@ export const suggestionService = {
     const { data: history, error: historyError } = await client.from('suggestion_status_history')
       .select('*').eq('suggestion_id', id).order('created_at', { ascending: false });
     if (historyError) throw new Error(historyError.message);
-    return { suggestion: data as Suggestion, history: (history || []) as SuggestionStatusHistory[] };
+    return { suggestion: withPhotoUrl(data as Suggestion), history: (history || []) as SuggestionStatusHistory[] };
   },
 
   async getMySuggestions(userId: string): Promise<Suggestion[]> {
     const client = requireClient();
     const { data, error } = await client.from('suggestions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
-    return (data || []) as Suggestion[];
+    return ((data || []) as Suggestion[]).map(withPhotoUrl);
   },
 
   async getSuggestions(filters?: { search?: string; category?: string; status?: string; sortBy?: 'newest' | 'oldest' | 'support' }): Promise<Suggestion[]> {
@@ -125,7 +132,7 @@ export const suggestionService = {
     else query = query.order('created_at', { ascending: false });
     const { data, error } = await query;
     if (error) throw new Error(error.message);
-    return (data || []) as Suggestion[];
+    return ((data || []) as Suggestion[]).map(withPhotoUrl);
   },
 
   async updateSuggestionStatus(
