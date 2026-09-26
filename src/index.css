@@ -408,3 +408,47 @@
   .animate-fadeUp, .animate-fadeIn { opacity: 1; transform: none; }
   .cursor-reveal-container { display: none; }
 }
+
+/* The supplied light-glass treatment, scaled to civic-app controls. Honey is
+   reserved for primary actions; neutral glass remains clear for filters. */
+.hive-glass, .hive-glass.btn-cut, .hive-glass.btn-cut-border, .hive-glass.btn-cut-sm {
+  --glass-x: 50%; --glass-y: 50%;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  clip-path: none;
+  border: 1px solid rgba(231,194,38,.42);
+  border-radius: 12px;
+  background: rgba(40,35,22,.66);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  color: #f6e6ab;
+  box-shadow: inset 0 1px rgba(255,255,255,.16), 0 8px 22px rgba(0,0,0,.17);
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease, transform 180ms cubic-bezier(.23,1,.32,1);
+  text-decoration: none;
+  text-align: center;
+}
+.hive-glass::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+  background: radial-gradient(circle at var(--glass-x) var(--glass-y), rgba(255,245,194,.28), transparent 70%);
+  opacity: 0; transition: opacity 180ms ease;
+}
+.hive-glass:hover:not(:disabled) { background: rgba(62,51,28,.72); border-color: rgba(245,218,116,.8); color: #fff6d9; box-shadow: inset 0 1px rgba(255,255,255,.23), 0 10px 24px rgba(0,0,0,.24); }
+.hive-glass:hover:not(:disabled)::after { opacity: 1; }
+.hive-glass:active:not(:disabled) { transform: translateY(1px); }
+.hive-glass:focus-visible { outline: 2px solid #f6d54e; outline-offset: 3px; }
+.hive-glass:disabled { opacity: .45; cursor: not-allowed; }
+.hive-glass.btn-cut, .hive-glass.btn-cut-sm { background: rgba(231,194,38,.82); color: #13120f; border-color: rgba(255,239,171,.75); }
+.hive-glass.btn-cut:hover:not(:disabled), .hive-glass.btn-cut-sm:hover:not(:disabled) { background: rgba(244,207,70,.93); color: #101014; }
+.hive-glass.btn-cut-border { padding: 10px 16px; background: rgba(35,30,21,.72); }
+.hive-glass.btn-cut-border::before { display: none; }
+.hive-glass.btn-cut-border span { padding: 0; color: inherit; font-size: inherit; white-space: nowrap; }
+.hive-glass.btn-cut-border:hover span { color: inherit; }
+.hive-glass.btn-cut-sm { width: 40px; height: 40px; }
+@media (prefers-reduced-motion: reduce) { .hive-glass::after { display: none; } }
+
+.hive-glass { min-height: 36px; }
+@media (hover: none) { .hive-glass::after { display: none; } }
+
+@media (max-width: 639px) { #nav-submit-btn { width: 40px; min-width: 40px; padding: 0; } #nav-submit-btn span { display: none; } }
