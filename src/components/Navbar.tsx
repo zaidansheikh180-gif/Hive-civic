@@ -34,7 +34,14 @@ export const Navbar: React.FC = () => {
       setCurrentUser(user);
     });
 
-    return () => unsubscribe();
+    const onProfileUpdate = (event: Event) => {
+      setCurrentUser((event as CustomEvent<UserProfile>).detail);
+    };
+    window.addEventListener('hive:profile-updated', onProfileUpdate);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('hive:profile-updated', onProfileUpdate);
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -52,6 +59,7 @@ export const Navbar: React.FC = () => {
     if (isAdminArea) {
       return [
         { path: '/admin', label: 'Admin Dashboard' },
+        { path: '/admin/profile', label: 'Profile' },
         { path: '/admin/suggestions', label: 'Triage Queue' },
         { path: '/app', label: 'Citizen View' },
       ];
@@ -62,7 +70,10 @@ export const Navbar: React.FC = () => {
       { path: '/app', label: 'Civic Feed' },
       { path: '/app/submit', label: 'Submit' },
       { path: '/app/track', label: 'Track' },
-      ...(currentUser ? [{ path: '/app/suggestions', label: 'My Suggestions' }] : []),
+      ...(currentUser ? [
+        { path: '/app/suggestions', label: 'My Suggestions' },
+        { path: '/app/profile', label: 'Profile' },
+      ] : []),
     ];
   };
 
@@ -150,7 +161,7 @@ export const Navbar: React.FC = () => {
         {currentUser ? (
           <div className="flex items-center gap-2">
             <Link
-              to={currentUser.role === 'admin' ? '/admin' : '/app/suggestions'}
+              to={currentUser.role === 'admin' ? '/admin/profile' : '/app/profile'}
               className="btn-cut-border px-3 py-1.5 text-xs font-mono hidden sm:inline-flex items-center gap-1.5"
               title={`Authenticated as ${currentUser.full_name} (${currentUser.role})`}
             >
