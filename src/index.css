@@ -103,7 +103,7 @@
   clip-path: polygon(12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px);
   background: var(--honey);
   color: var(--deep);
-  transition: all 0.3s ease;
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -115,7 +115,7 @@
 
 .btn-cut:hover {
   transform: translateY(-2px);
-  filter: drop-shadow(0 4px 15px rgba(231, 194, 38, 0.45));
+  background: #F0CD4B;
 }
 
 .btn-cut:active {
@@ -131,7 +131,7 @@
   align-items: center;
   justify-content: center;
   clip-path: polygon(12px 0%, calc(100% - 12px) 0%, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0% calc(100% - 12px), 0% 12px);
-  transition: all 0.3s ease;
+  transition: background-color 180ms ease;
   cursor: pointer;
 }
 
@@ -159,7 +159,7 @@
 
 .btn-cut-border:hover {
   background: var(--honey);
-  filter: drop-shadow(0 4px 12px rgba(231, 194, 38, 0.35));
+  border-color: var(--honey);
 }
 
 .btn-cut-border:hover::before {
@@ -180,7 +180,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: background-color 180ms ease;
   cursor: pointer;
 }
 
@@ -202,10 +202,9 @@
 
 /* Glassmorphism class - borders use --muted-gold tint, hover shadow uses --deep-amber */
 .glass, .glass-panel {
-  background: rgba(11, 11, 15, 0.65);
-  border: 1px solid rgba(204, 158, 51, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(11, 11, 15, 0.88);
+  border: 1px solid rgba(204, 158, 51, 0.22);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255,255,255,0.035);
   border-radius: 16px;
 }
 
@@ -275,12 +274,12 @@
 }
 
 .animate-fadeUp {
-  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
 }
 
 .animate-fadeIn {
-  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
 }
 
@@ -396,3 +395,16 @@
   box-shadow: 0 0 0 2px rgba(231, 194, 38, 0.3);
 }
 
+
+/* Honor the user's motion preference across the existing animated components. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-fadeUp, .animate-fadeIn { opacity: 1; transform: none; }
+  .cursor-reveal-container { display: none; }
+}
