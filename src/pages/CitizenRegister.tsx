@@ -1,3 +1,5 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -177,14 +179,14 @@ export const CitizenRegister: React.FC = () => {
             <span>Accounts are granted verified <strong>citizen</strong> status. Municipal administrative access is controlled strictly database-side.</span>
           </div>
 
-          <button
+          <LiquidGlassButton
             type="submit"
             disabled={loading}
             className="w-full btn-cut py-4 text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 mt-4 shadow-[0_0_25px_rgba(231,194,38,0.35)] disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                <OrbNoise width={22} height={22} density={60} speed={28} pointer={{ drag: 0 }} />
                 <span>Creating Account...</span>
               </span>
             ) : (
@@ -193,7 +195,7 @@ export const CitizenRegister: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
-          </button>
+          </LiquidGlassButton>
         </form>
 
         {/* Footer */}
