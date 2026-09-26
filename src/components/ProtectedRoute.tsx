@@ -1,3 +1,5 @@
+import { OrbNoise } from './ui/OrbNoise';
+import { LiquidGlassButton } from './ui/LiquidGlassButton';
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -42,9 +44,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-[#E7C226] border-t-transparent animate-spin" />
+          <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
           <span className="text-xs font-mono text-[#CC9E33] tracking-widest uppercase">
-            Verifying HIVE Credentials...
+            Checking your session...
           </span>
         </div>
       </div>
@@ -75,10 +77,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             <span className="font-mono text-[#E7C226]">{user.role}</span> role.
           </p>
           <div className="pt-2 flex flex-col gap-2">
-            <a href="/app" className="btn-cut py-2.5 text-xs font-bold uppercase">
+            <a href="/app" className="hive-glass btn-cut py-2.5 text-xs font-bold uppercase">
               Return to Citizen Portal
             </a>
-            <button
+            <LiquidGlassButton
               onClick={async () => {
                 await authService.signOut();
                 window.location.href = '/admin/login';
@@ -86,7 +88,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               className="btn-cut-border py-2 text-xs font-mono text-neutral-400 hover:text-white"
             >
               Sign In as Municipal Official
-            </button>
+            </LiquidGlassButton>
           </div>
         </div>
       </div>
