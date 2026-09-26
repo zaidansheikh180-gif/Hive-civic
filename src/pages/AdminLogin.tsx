@@ -48,7 +48,7 @@ export const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen pt-28 pb-16 px-4 sm:px-8 max-w-md mx-auto flex flex-col justify-center z-10 select-none">
+    <div className="relative min-h-screen pt-28 pb-16 px-4 sm:px-8 max-w-md mx-auto flex flex-col justify-center z-10">
       <div className="glass-panel p-8 border border-[#CC9E33]/30 shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-2xl space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
