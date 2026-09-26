@@ -231,7 +231,7 @@ export const CitizenAppFeed: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           <LiquidGlassButton
             onClick={() => setSelectedCategory('All')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all ${
+            className={`filter-chip px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all ${
               selectedCategory === 'All'
                 ? 'bg-[#E7C226] text-black font-bold'
                 : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
@@ -243,7 +243,7 @@ export const CitizenAppFeed: React.FC = () => {
             <LiquidGlassButton
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all ${
+              className={`filter-chip px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all ${
                 selectedCategory === cat
                   ? 'bg-[#E7C226] text-black font-bold'
                   : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
