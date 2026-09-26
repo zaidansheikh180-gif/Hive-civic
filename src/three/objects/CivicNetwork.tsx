@@ -70,7 +70,7 @@ export const CivicNetwork: React.FC<CivicNetworkProps> = ({
           <lineBasicMaterial
             color="#CC9E33"
             transparent
-            opacity={0.25}
+            opacity={0.12}
             blending={THREE.AdditiveBlending}
           />
         </lineSegments>
@@ -83,7 +83,7 @@ export const CivicNetwork: React.FC<CivicNetworkProps> = ({
           <meshStandardMaterial
             color={color}
             emissive={color}
-            emissiveIntensity={0.8}
+            emissiveIntensity={0.32}
             roughness={0.2}
           />
         </mesh>
