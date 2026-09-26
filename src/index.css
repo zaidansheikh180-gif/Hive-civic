@@ -452,3 +452,6 @@
 @media (hover: none) { .hive-glass::after { display: none; } }
 
 @media (max-width: 639px) { #nav-submit-btn { width: 40px; min-width: 40px; padding: 0; } #nav-submit-btn span { display: none; } }
+
+/* Horizontally scrollable filters must not shrink their labels into ellipses. */
+.hive-glass.filter-chip { flex: 0 0 auto; min-width: max-content; padding-inline: 14px; white-space: nowrap; }
