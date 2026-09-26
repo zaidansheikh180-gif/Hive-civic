@@ -208,7 +208,7 @@ export const CitizenAppFeed: React.FC = () => {
 
       {/* 2. Filter & Search Controls */}
       <div className="space-y-4 mb-8">
-        <form onSubmit={handleSearchSubmit} className="flex gap-2">
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
           <div className="relative flex-1">
             <input
               type="text"
@@ -221,7 +221,7 @@ export const CitizenAppFeed: React.FC = () => {
           </div>
           <LiquidGlassButton
             type="submit"
-            className="btn-cut px-6 py-3 text-xs font-bold uppercase tracking-wider"
+            className="btn-cut shrink-0 min-h-10 px-4 py-2 text-[11px] font-bold uppercase tracking-wide"
           >
             Search
           </LiquidGlassButton>
