@@ -32,7 +32,7 @@ afterEach(cleanup);
 
 describe('admin routes after a verified admin session', () => {
   it.each([
-    ['/admin', 'Administrative Operations Console'],
+    ['/admin', 'Review workspace'],
     ['/admin/suggestions', 'Suggestion Management'],
     ['/admin/suggestions/example-id', 'Crosswalk'],
   ])('keeps %s open rather than redirecting to login', async (path, expected) => {
