@@ -1,3 +1,4 @@
+import { LiquidGlassButton } from './ui/LiquidGlassButton';
 import React, { useEffect } from 'react';
 import { Page } from '../types';
 import { Twitter, Linkedin, Facebook } from 'lucide-react';
@@ -88,7 +89,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 <span className="status-dot bg-[#E7C226] animate-pulse" />
                 <span className="text-[#CC9E33] font-mono">24 Active Issues in your area</span>
               </div>
-              <button
+              <LiquidGlassButton
                 id="landing-get-started-btn"
                 onClick={() => onNavigate('citizen')}
                 className="btn-cut px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg group font-bold tracking-wider shadow-[0_0_25px_rgba(231,194,38,0.35)]"
@@ -97,7 +98,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 <span className="ml-4 transition-transform duration-200 inline-block group-hover:translate-x-2">
                   →
                 </span>
-              </button>
+              </LiquidGlassButton>
             </div>
           </div>
         </div>
@@ -139,7 +140,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               target="_blank"
               rel="noreferrer"
               title="Hive on X"
-              className="btn-cut-sm social-btn-motion text-white"
+              className="hive-glass btn-cut-sm social-btn-motion text-white"
             >
               <Twitter className="w-4 h-4" />
             </a>
@@ -148,7 +149,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               target="_blank"
               rel="noreferrer"
               title="Hive on LinkedIn"
-              className="btn-cut-sm social-btn-motion text-white"
+              className="hive-glass btn-cut-sm social-btn-motion text-white"
             >
               <Linkedin className="w-4 h-4" />
             </a>
@@ -157,7 +158,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               target="_blank"
               rel="noreferrer"
               title="Hive on Facebook"
-              className="btn-cut-sm social-btn-motion text-white"
+              className="hive-glass btn-cut-sm social-btn-motion text-white"
             >
               <Facebook className="w-4 h-4" />
             </a>
