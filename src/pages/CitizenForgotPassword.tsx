@@ -1,3 +1,6 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -63,13 +66,13 @@ export const CitizenForgotPassword: React.FC = () => {
               </p>
             </div>
 
-            <Link
+            <LiquidGlassLink
               to="/auth/login"
               className="w-full btn-cut py-3.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Return to Sign In</span>
-            </Link>
+            </LiquidGlassLink>
           </div>
         ) : (
           /* Form */
@@ -98,14 +101,14 @@ export const CitizenForgotPassword: React.FC = () => {
               </div>
             </div>
 
-            <button
+            <LiquidGlassButton
               type="submit"
               disabled={loading}
               className="w-full btn-cut py-4 text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 mt-4 shadow-[0_0_25px_rgba(231,194,38,0.35)] disabled:opacity-50"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                  <OrbNoise width={22} height={22} density={60} speed={28} pointer={{ drag: 0 }} />
                   <span>Transmitting...</span>
                 </span>
               ) : (
@@ -114,7 +117,7 @@ export const CitizenForgotPassword: React.FC = () => {
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
-            </button>
+            </LiquidGlassButton>
 
             <div className="pt-4 text-center">
               <Link
