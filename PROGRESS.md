@@ -1,13 +1,13 @@
 # HIVE Civic — Project Progress
 
 > **Last updated:** 26 September 2026 (instinct branch)
-> **Current phase:** Citizen flow verified, admin login loop fixed and user-tested, profile name save user-tested; remaining authorization/backend matrix and visual polish
+> **Current phase:** Citizen flow verified, admin login loop fixed and user-tested, profile name save user-tested; remaining authorization/backend matrix and cross-route visual polish
 
 ## 1. Current Status
 
 HIVE is a functional civic suggestion-platform prototype with a React/TypeScript frontend, Supabase backend, citizen/admin flows, and a route-aware Three.js/React Three Fiber visual system.
 
-The project has moved beyond the initial prototype architecture. The current priority is to make the existing implementation secure and verifiable before spending the next major effort on visual polish.
+The project has moved beyond the initial prototype architecture. The current priority is to verify the existing security and data flow while improving the visual system in scoped, reviewable passes.
 
 **Important:** The user reports running the SQL for `004_profile_name_only.sql` in Supabase and receiving "Name saved" after an admin profile edit. This verifies that one save path by user report, not an independent database audit. The live application and test matrix for 001–003 remain unverified; do not infer them from the 004 report.
 
@@ -339,6 +339,18 @@ This milestone does not mark the remaining admin, moderator, RLS, storage, suppo
 - [ ] Automatic status-history entry
 - [ ] Verify actor is the authenticated admin UUID
 - [ ] Verify citizen cannot perform admin update
+
+---
+
+# 8. Public page polish pass (repository implementation)
+
+- [x] Rewrote the welcome hero and first explanatory section to describe submission, reference tracking and review without unsupported performance metrics or institutional claims.
+- [x] Reduced visual noise in the home scene by lowering network density, particles, highlights and one point light; kept the original Three.js scene and honey/dark identity.
+- [x] Added Lenis smooth scrolling only on the public `/` page and an InView reveal adapted from motion-primitives for one lower section. Both respect reduced-motion preference; the custom cursor is hidden when motion is reduced.
+- [x] Checked local desktop and mobile hero screenshots and a citizen sign-in desktop screenshot. These are visual spot checks, not a complete route or device QA pass.
+- [x] Ran lint, build and existing admin/profile tests after the pass (see test log and commit validation). The build still reports a large chunk warning; no bundle optimization was claimed.
+- [ ] Inspect the lower welcome page and the scroll reveal in a reliable browser session; local headless capture did not prove this interaction.
+- [ ] Finish visual/accessibility/performance QA across all routes, breakpoints and actual devices. A signed-in data view was not visually checked in this pass.
 
 ---
 
