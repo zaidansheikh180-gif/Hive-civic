@@ -27,7 +27,7 @@ export const WelcomeAbout: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen pt-24 pb-20 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col justify-between select-none">
+    <div className="relative min-h-screen pt-24 pb-20 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col justify-between">
       {/* 1. HERO SECTION: 3D-INTEGRATED WORLD ENTRY */}
       <section className="grid grid-cols-12 gap-8 lg:gap-14 items-center min-h-[75vh] py-10 lg:py-16">
         <div className="col-span-12 lg:col-span-8 space-y-7 z-10 animate-fadeUp">
