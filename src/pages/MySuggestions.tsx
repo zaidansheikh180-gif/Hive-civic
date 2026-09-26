@@ -97,7 +97,7 @@ export const MySuggestions: React.FC = () => {
       {loading ? (
         <div className="min-h-[40vh] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
+            <OrbNoise width={72} height={72} density={90} speed={28} pointer={{ drag: 0 }} />
             <span className="text-xs font-mono text-[#CC9E33]">
               Loading your submitted proposals...
             </span>
