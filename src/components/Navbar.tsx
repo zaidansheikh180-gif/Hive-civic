@@ -82,7 +82,7 @@ export const Navbar: React.FC = () => {
   const navLinks = getNavLinks();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 w-full z-50 px-4 sm:px-8 py-3.5 flex justify-between items-center glass select-none">
+    <nav className="fixed top-0 left-0 right-0 w-full z-50 px-4 sm:px-8 py-3.5 flex justify-between items-center glass select-none hive-safe-nav">
       {/* Logo: Hexagon polygon SVG + HIVE */}
       <Link
         to={currentUser ? (isAdminArea ? '/admin' : '/app') : '/'}
