@@ -66,7 +66,7 @@ export const ParticleField: React.FC<ParticleFieldProps> = ({
         size={0.12}
         color={color}
         transparent
-        opacity={0.65}
+        opacity={0.28}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
