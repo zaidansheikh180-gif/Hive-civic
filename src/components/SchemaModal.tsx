@@ -1,3 +1,4 @@
+import { LiquidGlassButton } from './ui/LiquidGlassButton';
 import React, { useState } from 'react';
 import { Database, Copy, Check, X, Shield, Terminal } from 'lucide-react';
 
@@ -447,12 +448,12 @@ export const SchemaModal: React.FC<SchemaModalProps> = ({ isOpen, onClose }) => 
             </div>
           </div>
 
-          <button
+          <LiquidGlassButton
             onClick={onClose}
             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </LiquidGlassButton>
         </div>
 
         {/* Instructions */}
@@ -462,7 +463,7 @@ export const SchemaModal: React.FC<SchemaModalProps> = ({ isOpen, onClose }) => 
             <span>1. Click &ldquo;Copy SQL Schema&rdquo; &rarr; 2. Open Supabase SQL Editor &rarr; 3. Run query.</span>
           </div>
 
-          <button
+          <LiquidGlassButton
             onClick={handleCopy}
             className="btn-cut px-4 py-1.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 flex-shrink-0 shadow-[0_0_12px_rgba(231,194,38,0.3)]"
           >
@@ -477,7 +478,7 @@ export const SchemaModal: React.FC<SchemaModalProps> = ({ isOpen, onClose }) => 
                 <span>Copy SQL Schema</span>
               </>
             )}
-          </button>
+          </LiquidGlassButton>
         </div>
 
         {/* Code View */}
@@ -492,12 +493,12 @@ export const SchemaModal: React.FC<SchemaModalProps> = ({ isOpen, onClose }) => 
           <span className="text-neutral-400">
             Filesystem location: <code className="text-[#E7C226]">/supabase/schema.sql</code>
           </span>
-          <button
+          <LiquidGlassButton
             onClick={onClose}
             className="btn-cut-border px-4 py-1.5 text-xs font-bold uppercase"
           >
             Close
-          </button>
+          </LiquidGlassButton>
         </div>
       </div>
     </div>
