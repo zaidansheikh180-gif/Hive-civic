@@ -3,7 +3,7 @@
 
 > **Last architecture update:** 26 September 2026 (instinct branch)
 >
-> This document describes HIVE on the `instinct` working branch, with `main` deliberately unchanged. It records security/architecture decisions, verified behavior and remaining work. Future LLMs must inspect the code before assuming a `TARGET` item is implemented.
+> This document describes HIVE on the `instinct` working branch, with `main` deliberately unchanged. Repository behavior and live Supabase state are different kinds of evidence; the live migration state still needs independent verification.
 
 ---
 
@@ -388,15 +388,7 @@ That was removed because a browser-controlled cached role must not become an aut
 
 `profiles.id` is linked to `auth.users.id`.
 
-Current roles are:
-
-```text
-citizen
-admin
-moderator
-```
-
-New registrations must become `citizen`. Moderator/admin privileges are assigned through the database role model; normal public signup cannot self-escalate.
+The hardened migration 001 constrains `profiles.role` to `citizen | admin`. The original `schema.sql` and some frontend types/guards still mention `moderator`; this is a legacy mismatch, not a third working role under that migration. New registrations should become `citizen`; admin privileges require a database-side assignment, not public signup.
 
 The database trigger `handle_new_user()` is responsible for enforcing this rather than trusting browser-provided role metadata.
 
@@ -418,11 +410,11 @@ Admin authorization is a database concern.
 
 ### Self-service profile name editing
 
-Both `/admin/profile` and `/app/profile` expose only `full_name` as editable. The email and role are displayed read-only. `authService.updateDisplayName()` validates a nonempty name of at most 80 characters, calls `supabase.auth.getUser()`, updates only `{ full_name }` with `.eq('id', authUser.id)`, selects the resulting profile, and notifies the navbar to refresh. Name changes do not promote an account. The user reports applying the 004 SQL and seeing "Name saved" on the admin profile; persistence on reload and citizen-path save need a live test.
+Both `/admin/profile` and `/app/profile` render `ProfilePage` and expose only `full_name` as editable. The email and role are displayed read-only. `authService.updateDisplayName()` validates a nonempty name of at most 80 characters, calls `supabase.auth.getUser()`, updates only `{ full_name }` with `.eq('id', authUser.id)`, selects the resulting profile, and notifies the navbar to refresh. Name changes do not promote an account. The user reports applying the 004 SQL and seeing "Name saved" on the admin profile; persistence on reload and citizen-path save need a live test.
 
 `supabase/migrations/004_profile_name_only.sql` narrows the authenticated database grant to UPDATE(`full_name`) and replaces the prior broad profile UPDATE policy with an own-row policy. In 003, non-admin role changes were already checked against the current role; 004 adds column-level least privilege. Do not assume that a repository migration has run in production: 004 is reported applied by the user; 001–003 live execution and the full RLS matrix remain unverified. The 004 grant intentionally removes app-client edits to other profile fields, including role assignment; database operators retain privileged SQL access outside this authenticated client grant.
 
-The branch declares Vitest, jsdom and React Testing Library as devDependencies and has 7 passing admin/profile unit tests. `bun.lock` is lockfileVersion 1, regenerated and frozen-install tested with Bun 1.3.14 after a newer lockfile failed on the user's machine. Vite appears only under devDependencies. Lint and production build pass. These tests do not replace authenticated end-to-end checks.
+The branch declares Vitest, jsdom and React Testing Library as devDependencies and has 7 passing admin/profile unit tests at the latest local check. `bun.lock` is lockfileVersion 1, regenerated and frozen-install tested with Bun 1.3.14 after a newer lockfile failed on the user's machine. Vite appears only under devDependencies. Lint and production build pass. These tests do not replace authenticated end-to-end checks.
 
 ---
 
@@ -792,7 +784,7 @@ remove_support(uuid)
 
 are authenticated-only and security-definer functions with a controlled search path.
 
-The frontend no longer uses localStorage to track support state.
+The frontend no longer uses localStorage to track support state. Legacy `increment_support` and `decrement_support` are granted to authenticated in 001, then explicitly revoked from both `anon` and `authenticated` in 002. Do not claim they remain callable after 002. The live function grants have not been audited; verify which migrations actually ran before deciding on a fix.
 
 ### Remaining consideration
 
@@ -1009,7 +1001,7 @@ Reusable components include:
 - `AcademicDisclaimer`
 - `ProtectedRoute`
 
-The application should continue using shared components instead of duplicating identical UI behavior across pages.
+The application uses shared `src/components/ui/LiquidGlassButton.tsx` for button/link semantics with the adapted honey glass treatment, and `OrbNoise.tsx` for the user-supplied particle loading animation. Reduced-motion handling is present. The `hidden` utility requires explicit display precedence over the glass base style, corrected in `index.css`. The application should continue using shared components instead of duplicating identical UI behavior across pages.
 
 ### UI state requirements
 
@@ -1206,7 +1198,7 @@ The following areas still need work even after this security-hardening pass:
 6. The 3D system needs comprehensive visual/performance QA on every route.
 7. Legacy/duplicate page/component concepts should eventually be consolidated.
 8. Public/admin/citizen queries need end-to-end RLS testing with real accounts.
-9. Live execution of migrations 001–003 remains unverified; user reports running 004 but its grants/RLS still need an independent audit.
+9. Live execution of migrations 001–003 remains unverified; user reports running 004 but its grants/RLS still need an independent audit. The legacy support RPCs are revoked in repository migration 002, so their live exposure depends on actual migration state.
 10. Lint, build and 7 unit tests pass locally on instinct; authenticated end-to-end and cross-role tests remain.
 
 ---
@@ -1375,23 +1367,9 @@ The custom cursor should not be required for interaction.
 
 ---
 
-## 37. Change Management Rules for Future LLMs
+## 37. Repository and deployment evidence
 
-Before changing HIVE:
-
-1. Read `ARCHITECTURE.md`.
-2. Read `PROGRESS.md`.
-3. Inspect the actual files involved.
-4. Distinguish CURRENT from TARGET.
-5. Never assume a committed migration has been applied to the live Supabase project.
-6. Never introduce localStorage as a replacement backend.
-7. Never use frontend-only authorization.
-8. Never expose service-role secrets.
-9. Preserve UUID/reference-ID separation.
-10. Preserve the canonical six statuses and ten categories.
-11. Preserve citizen/admin separation.
-12. Update both architecture and progress documentation whenever meaningful architecture or implementation progress occurs.
-13. Do not mark work complete unless it is actually implemented and, where applicable, verified.
+The branch documents implemented code separately from live Supabase migration state and end-to-end verification. Repository migrations are not evidence that a live database has applied them. `main` remains outside the `instinct` workstream.
 
 ---
 
@@ -1482,6 +1460,22 @@ The verified citizen workflow is now:
     Track / view suggestion
 
 The citizen flow is considered functionally working in the verified AI Studio environment. This does not mean every pending RLS, storage, support, moderator, or admin test is complete.
+
+## 38B. September 26 UI passes and current shell
+
+The routed public page is `WelcomeAbout.tsx`; `Home.tsx` and `LandingPage.tsx` remain legacy/unrouted. Round 1 revised the public hero, reduced the existing 3D scene noise, and scoped Lenis smooth scrolling and an InView reveal to the public page. Round 2 rewrote the lower home narrative, simplified citizen sign-in language while keeping diagnostics behind details, and adapted the user-supplied glass-button and particle-loader components under `src/components/ui/`. The honey/dark palette, remote background video, and route-aware SceneCanvas remain.
+
+Round 2 visual QA fixed the citizen feed's clipped filter chips, one-line desktop navbar labels, a clipped mobile admin + action, and centered full-page orb loading. Round 3 fixed glass controls overriding responsive `hidden`, added viewport safe-area spacing and a dark theme-color, gave coarse-pointer form controls 16px text, improved tap feedback, and removed page-wide text-selection blocks. Later targeted fixes reduced the citizen feed Search button and improved the Track Search disabled contrast while placing its clear control inside the input. No Dither Reveal or daisyUI integration was added. These were local-preview and fabricated-auth fixture checks, not a deployment test on a real phone or live Supabase.
+
+## 38C. Repository audit findings that need deployment checks
+
+- `schema.sql` storage upload policy checks only `bucket_id`; `storageService.ts` applies client-side size/MIME checks. Confirm live bucket limits and policy path restrictions before production. No live storage configuration was inspected in this code audit.
+- `SchemaModal.tsx` still embeds a copyable pre-hardening SQL baseline and is reachable from the admin login page. Do not present this as a safe one-step deployment script.
+- Citizen-owned detail queries return `admin_notes` and the citizen details page renders them. Treat notes as citizen-visible until a product/privacy decision changes this. The public projection excludes them.
+- `index.html` loads `motion@latest` from a CDN without pinning, alongside bundled motion. The production JS still builds as a ~2.13 MB single chunk (~594 KB gzip).
+- Baseline schema and frontend still mention `moderator`, while migration 001 limits roles to `citizen | admin`. Registration UI requires six characters; actual Supabase password policy is not verified.
+- Package metadata contains likely unused `@google/genai`, `express`, `dotenv`, and `@types/express`; do an import/dependency check before removing. The footer says MIT but the branch has no LICENSE file.
+- The migration order 001 through 004 and live grants/RLS/bucket settings need a read-only audit. Migration 002 does revoke legacy counter RPCs; whether that protection is live is unknown.
 
 ## 39. One-Page Mental Model
 
