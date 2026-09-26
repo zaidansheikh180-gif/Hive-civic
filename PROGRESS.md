@@ -530,3 +530,10 @@ Verified end-to-end
 ```
 
 All three states matter.
+
+## 26 September 2026 - Scoped polish and proposed photo hardening (`instinct`)
+
+- Implemented in repository: added `005_suggestion_photo_limits.sql` with server-side 5 MiB/JPEG/PNG bucket limits, owner/suggestion-bound upload keys, and an ownership/object-checked, path-only attachment RPC. The client now uploads under `<user UUID>/<suggestion UUID>/<random UUID>.<extension>` and derives public display URLs from paths, while retaining legacy stored URLs on old records.
+- Removed the copyable outdated schema modal entry points from admin login and the citizen feed. The feed notice now points project owners to `supabase/migrations` and `ARCHITECTURE.md`. The obsolete unpinned Motion CDN script was removed; current routed pages do not use the legacy LandingPage component and the cursor has a CSS fallback.
+- Admin dashboard now distinguishes loading, empty and failure states, and shows category and status counts as readable text and bars rather than relying on angled labels, color, or hover tooltips.
+- **Migration 005 is unapplied.** Existing live migration state and bucket settings are unverified. Coordinate the matching client release and SQL application only after reading the live checks and testing with real citizen/admin accounts; uploading photos against a mixed old/new deployment may fail. The appended public view field exposes the uploader UUID in new photo keys; the bucket is public. The baseline `schema.sql` is still historical and needs separate reconciliation.
