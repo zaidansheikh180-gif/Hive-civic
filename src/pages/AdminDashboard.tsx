@@ -7,17 +7,6 @@ import { suggestionService } from '../services/suggestionService';
 import { Suggestion, DashboardStats, AdminProfile } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
-} from 'recharts';
-import {
   ShieldCheck,
   FileSpreadsheet,
   Clock,
@@ -46,6 +35,9 @@ export const AdminDashboard: React.FC = () => {
   const [admin, setAdmin] = useState<AdminProfile | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentList, setRecentList] = useState<Suggestion[]>([]);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [recentError, setRecentError] = useState<string | null>(null);
+  const [recentLoading, setRecentLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -57,17 +49,18 @@ export const AdminDashboard: React.FC = () => {
         return;
       }
       setAdmin(current);
-      void suggestionService.getDashboardStats().then((value) => { if (active) setStats(value); });
+      void suggestionService.getDashboardStats().then((value) => { if (active) setStats(value); }).catch(() => { if (active) setStatsError('Statistics could not be loaded.'); });
       void suggestionService.getSuggestions({ sortBy: 'newest' }).then((items) => {
         if (active) setRecentList(items.slice(0, 5));
-      });
+      }).catch(() => { if (active) setRecentError('Recent proposals could not be loaded.'); })
+        .finally(() => { if (active) setRecentLoading(false); });
     });
     return () => { active = false; };
   }, [navigate]);
 
   if (!admin) return null;
 
-  // Transform category counts into recharts array
+  // Each count is readable as text without relying on a chart tooltip or color.
   const categoryData = stats
     ? Object.entries(stats.categoryCounts).map(([cat, count]) => ({
         name: cat,
@@ -75,16 +68,15 @@ export const AdminDashboard: React.FC = () => {
       }))
     : [];
 
-  const statusPieData = stats
-    ? [
-        { name: 'Submitted', value: stats.submitted, key: 'submitted' },
-        { name: 'Under Review', value: stats.under_review, key: 'under_review' },
-        { name: 'Accepted', value: stats.accepted, key: 'accepted' },
-        { name: 'Planned', value: stats.planned, key: 'planned' },
-        { name: 'Implemented', value: stats.implemented, key: 'implemented' },
-        { name: 'Rejected', value: stats.rejected, key: 'rejected' },
-      ].filter((d) => d.value > 0)
-    : [];
+  const statusData = stats ? [
+    { name: 'Submitted', value: stats.submitted, key: 'submitted' },
+    { name: 'Under Review', value: stats.under_review, key: 'under_review' },
+    { name: 'Accepted', value: stats.accepted, key: 'accepted' },
+    { name: 'Planned', value: stats.planned, key: 'planned' },
+    { name: 'Implemented', value: stats.implemented, key: 'implemented' },
+    { name: 'Rejected', value: stats.rejected, key: 'rejected' },
+  ] : [];
+  const metric = (value: number | undefined) => statsError ? 'Unavailable' : stats ? value : '...';
 
   return (
     <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-8 max-w-7xl mx-auto z-10 space-y-8">
@@ -136,7 +128,7 @@ export const AdminDashboard: React.FC = () => {
             Total
           </div>
           <div className="text-2xl font-bold font-mono text-white">
-            {stats ? stats.total : 0}
+            {metric(stats?.total)}
           </div>
         </div>
 
@@ -145,7 +137,7 @@ export const AdminDashboard: React.FC = () => {
             Submitted
           </div>
           <div className="text-2xl font-bold font-mono text-[#CC9E33]">
-            {stats ? stats.submitted : 0}
+            {metric(stats?.submitted)}
           </div>
         </div>
 
@@ -154,7 +146,7 @@ export const AdminDashboard: React.FC = () => {
             Under Review
           </div>
           <div className="text-2xl font-bold font-mono text-[#E7C226]">
-            {stats ? stats.under_review : 0}
+            {metric(stats?.under_review)}
           </div>
         </div>
 
@@ -163,7 +155,7 @@ export const AdminDashboard: React.FC = () => {
             Accepted
           </div>
           <div className="text-2xl font-bold font-mono text-[#38BDF8]">
-            {stats ? stats.accepted : 0}
+            {metric(stats?.accepted)}
           </div>
         </div>
 
@@ -172,7 +164,7 @@ export const AdminDashboard: React.FC = () => {
             Planned
           </div>
           <div className="text-2xl font-bold font-mono text-[#818CF8]">
-            {stats ? stats.planned : 0}
+            {metric(stats?.planned)}
           </div>
         </div>
 
@@ -181,7 +173,7 @@ export const AdminDashboard: React.FC = () => {
             Implemented
           </div>
           <div className="text-2xl font-bold font-mono text-[#10B981]">
-            {stats ? stats.implemented : 0}
+            {metric(stats?.implemented)}
           </div>
         </div>
 
@@ -190,111 +182,51 @@ export const AdminDashboard: React.FC = () => {
             Rejected
           </div>
           <div className="text-2xl font-bold font-mono text-[#EF4444]">
-            {stats ? stats.rejected : 0}
+            {metric(stats?.rejected)}
           </div>
         </div>
       </div>
 
-      {/* Analytics Visualizers Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Category Breakdown Bar Chart */}
-        <div className="lg:col-span-8 glass-panel p-6 border border-[#CC9E33]/30 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              <span>Proposals by category</span>
-            </h3>
-            <span className="text-[10px] font-mono text-neutral-400">
-              By category
-            </span>
-          </div>
-
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                <XAxis
-                  dataKey="name"
-                  stroke="#CC9E33"
-                  fontSize={10}
-                  interval={0}
-                  angle={-30}
-                  textAnchor="end"
-                  tickLine={false}
-                />
-                <YAxis stroke="#CC9E33" fontSize={10} tickLine={false} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#14141B',
-                    borderColor: '#E7C226',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    color: '#FFF',
-                  }}
-                />
-                <Bar dataKey="count" fill="#E7C226" radius={[4, 4, 0, 0]}>
-                  {categoryData.map((_, idx) => (
-                    <Cell key={idx} fill={idx % 2 === 0 ? '#E7C226' : '#CC9E33'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      {(statsError || !stats) && (
+        <div role={statsError ? 'alert' : 'status'} className="glass-panel p-4 border border-white/10 text-sm text-neutral-300">
+          {statsError || <span className="flex items-center gap-3"><span className="inline-block w-4 h-4 rounded-full border-2 border-[#E7C226] border-t-transparent animate-spin motion-reduce:animate-none" aria-hidden="true" /> Loading statistics...</span>}
         </div>
-
-        {/* Status Breakdown Pie Chart */}
-        <div className="lg:col-span-4 glass-panel p-6 border border-[#CC9E33]/30 space-y-4 flex flex-col justify-between">
-          <h3 className="text-sm font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
-            <Inbox className="w-4 h-4" />
-            <span>By status</span>
-          </h3>
-
-          <div className="h-52 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={statusPieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={75}
-                  paddingAngle={4}
-                >
-                  {statusPieData.map((entry) => (
-                    <Cell
-                      key={entry.key}
-                      fill={STATUS_COLORS[entry.key] || '#E7C226'}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#14141B',
-                    borderColor: '#E7C226',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    color: '#FFF',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-2 border-t border-white/10">
-            {statusPieData.map((d) => (
-              <div key={d.name} className="flex items-center gap-1.5">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: STATUS_COLORS[d.key] }}
-                />
-                <span className="text-neutral-300 truncate">
-                  {d.name}: {d.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="glass-panel p-6 border border-[#CC9E33]/30 space-y-4" aria-label="Proposals by category">
+          <h2 className="text-sm font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" /> Proposals by category
+          </h2>
+          {stats && (categoryData.length ? (
+            <ul className="space-y-3">
+              {categoryData.sort((a, b) => b.count - a.count).map(({ name, count }) => (
+                <li key={name} className="space-y-1">
+                  <div className="flex justify-between gap-3 text-sm text-neutral-200">
+                    <span className="min-w-0 break-words">{name}</span><strong className="font-mono shrink-0">{count}</strong>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/10 overflow-hidden" aria-hidden="true">
+                    <div className="h-full rounded-full bg-[#E7C226]" style={{ width: `${stats.total ? count / stats.total * 100 : 0}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="text-sm text-neutral-400">No proposals to show by category yet.</p>)}
+        </section>
+        <section className="glass-panel p-6 border border-[#CC9E33]/30 space-y-4" aria-label="Proposals by status">
+          <h2 className="text-sm font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
+            <Inbox className="w-4 h-4" /> By status
+          </h2>
+          {stats && (stats.total ? (
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {statusData.map(({ key, name, value }) => (
+                <li key={key} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 p-3 text-sm text-neutral-200">
+                  <span className="flex items-center gap-2 min-w-0"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: STATUS_COLORS[key] }} aria-hidden="true" />{name}</span>
+                  <strong className="font-mono">{value}</strong>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="text-sm text-neutral-400">No proposals to show by status yet.</p>)}
+        </section>
       </div>
 
       {/* Recent Triage Activity Table */}
@@ -308,12 +240,15 @@ export const AdminDashboard: React.FC = () => {
             to="/admin/suggestions"
             className="text-xs text-[#E7C226] hover:underline font-mono uppercase flex items-center gap-1"
           >
-            <span>Open All ({stats?.total || 0})</span>
+            <span>Open All ({stats ? stats.total : statsError ? "unavailable" : "..."})</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         <div className="divide-y divide-white/10">
+          {recentLoading && <div role="status" className="py-6 flex items-center gap-3 text-sm text-neutral-300"><span className="inline-block w-4 h-4 rounded-full border-2 border-[#E7C226] border-t-transparent animate-spin motion-reduce:animate-none" aria-hidden="true" /> Loading recent proposals...</div>}
+          {recentError && <p role="alert" className="py-6 text-sm text-red-200">{recentError}</p>}
+          {!recentLoading && !recentError && recentList.length === 0 && <p className="py-6 text-sm text-neutral-400">No recent proposals yet.</p>}
           {recentList.map((item) => (
             <Link
               key={item.id}
@@ -321,11 +256,11 @@ export const AdminDashboard: React.FC = () => {
               className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/5 px-3 rounded-lg transition-colors group"
             >
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-mono text-[#CC9E33] font-bold">
                     {item.reference_id}
                   </span>
-                  <span className="text-[10px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded break-words">
                     {item.category}
                   </span>
                   <StatusBadge status={item.status} size="sm" />
