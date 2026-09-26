@@ -112,7 +112,7 @@ export const CitizenAppFeed: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-20 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col justify-between select-none">
+    <div className="min-h-screen pt-24 pb-20 px-4 sm:px-8 max-w-7xl mx-auto flex flex-col justify-between">
       {/* 1. Header Banner & Welcome */}
       <div className="space-y-6 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
