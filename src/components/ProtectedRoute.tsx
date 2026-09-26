@@ -44,7 +44,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
+          <OrbNoise width={88} height={88} density={90} speed={28} pointer={{ drag: 0 }} />
           <span className="text-xs font-mono text-[#CC9E33] tracking-widest uppercase">
             Checking your session...
           </span>
