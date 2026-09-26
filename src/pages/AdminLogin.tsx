@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { isSupabaseConfigured, getSupabaseConfigStatus } from '../services/supabaseClient';
-import { SchemaModal } from '../components/SchemaModal';
 import {
   ShieldCheck,
   Lock,
@@ -11,7 +10,6 @@ import {
   ArrowRight,
   AlertCircle,
   CheckCircle2,
-  Database,
   LogIn,
   Info,
 } from 'lucide-react';
@@ -22,7 +20,6 @@ export const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showSchemaModal, setShowSchemaModal] = useState(false);
 
   const isLiveSupabase = isSupabaseConfigured();
   const status = getSupabaseConfigStatus();
@@ -151,18 +148,6 @@ export const AdminLogin: React.FC = () => {
           </p>
         </div>
 
-        {/* Database Schema Viewer Button */}
-        <div className="pt-2 border-t border-white/10 text-center">
-          <LiquidGlassButton
-            type="button"
-            onClick={() => setShowSchemaModal(true)}
-            className="text-[11px] font-mono text-[#CC9E33] hover:text-[#E7C226] flex items-center justify-center gap-1.5 mx-auto py-1"
-          >
-            <Database className="w-3.5 h-3.5" />
-            <span>View Database Schema &amp; Setup SQL</span>
-          </LiquidGlassButton>
-        </div>
-
         <div className="text-center space-y-2">
           <Link
             to="/auth/login"
@@ -179,11 +164,6 @@ export const AdminLogin: React.FC = () => {
           </Link>
         </div>
       </div>
-
-      <SchemaModal
-        isOpen={showSchemaModal}
-        onClose={() => setShowSchemaModal(false)}
-      />
     </div>
   );
 };
