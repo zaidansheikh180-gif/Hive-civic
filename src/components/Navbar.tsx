@@ -181,7 +181,7 @@ export const Navbar: React.FC = () => {
             <LiquidGlassButton
               onClick={handleSignOut}
               className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-red-500/40 text-neutral-400 hover:text-red-300 transition-colors"
-              title="Sign Out"
+              title="Sign Out" aria-label="Sign out"
             >
               <LogOut className="w-4 h-4" />
             </LiquidGlassButton>
@@ -210,7 +210,7 @@ export const Navbar: React.FC = () => {
         {/* Primary CTA button */}
         <LiquidGlassLink
           to="/app/submit"
-          id="nav-submit-btn"
+          id="nav-submit-btn" aria-label="Submit a proposal"
           className="btn-cut px-3 sm:px-5 py-2 text-xs flex items-center gap-1.5 shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
