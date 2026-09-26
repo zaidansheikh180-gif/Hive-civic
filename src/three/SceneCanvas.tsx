@@ -62,7 +62,7 @@ export const SceneCanvas: React.FC<SceneCanvasProps> = ({ sceneType, currentStat
         {/* Amber Rim Light */}
         <directionalLight position={[-4, -3, -2]} intensity={0.8} color="#CC9E33" />
         {/* Soft Point Light */}
-        <pointLight position={[0, 2, 3]} intensity={1.2} color="#E7C226" distance={8} />
+        <pointLight position={[0, 2, 3]} intensity={0.7} color="#E7C226" distance={8} />
 
         <CameraRig sceneType={sceneType} />
 
