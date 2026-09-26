@@ -957,6 +957,14 @@ The visual identity currently centers on:
 
 ---
 
+### Public-page polish pass (26 September 2026)
+
+The root route keeps `HomeScene` as a React Three Fiber background. Its civic network, particle count, suggestion-box glow and point-light intensity are restrained so the UI remains legible without replacing the 3D concept. The welcome content favors an explicit submit → reference → review story over unverified metrics; the academic-prototype notice remains visible.
+
+`WelcomeScroll` owns a Lenis instance only while the pathname is `/`; it destroys the instance when the route changes or reduced-motion preference changes. `InView`, adapted from motion-primitives, animates one explanatory section on entry and renders it without motion when reduced motion is requested. The custom cursor is likewise hidden for reduced-motion preference. No Supabase schema, policies or live data are affected by this visual pass.
+
+Desktop and mobile hero and citizen sign-in snapshots were inspected locally. Lower-page animation, signed-in routes, keyboard/accessibility behavior and device performance still require testing. The build currently emits a large-chunk warning.
+
 ## 24. Route-to-Scene Concept
 
 Current conceptual mapping:
