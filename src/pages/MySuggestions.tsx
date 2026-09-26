@@ -1,3 +1,5 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -67,13 +69,13 @@ export const MySuggestions: React.FC = () => {
             </p>
           </div>
 
-          <Link
+          <LiquidGlassLink
             to="/app/submit"
             className="btn-cut px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(231,194,38,0.4)] self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
             <span>New Suggestion</span>
-          </Link>
+          </LiquidGlassLink>
         </div>
 
         {/* Search Input */}
@@ -95,7 +97,7 @@ export const MySuggestions: React.FC = () => {
       {loading ? (
         <div className="min-h-[40vh] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 rounded-full border-2 border-[#E7C226] border-t-transparent animate-spin" />
+            <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
             <span className="text-xs font-mono text-[#CC9E33]">
               Loading your submitted proposals...
             </span>
@@ -118,13 +120,13 @@ export const MySuggestions: React.FC = () => {
           </div>
 
           <div className="pt-2">
-            <Link
+            <LiquidGlassLink
               to="/app/submit"
               className="btn-cut px-8 py-3 text-xs font-extrabold uppercase tracking-widest inline-flex items-center gap-2 shadow-[0_0_20px_rgba(231,194,38,0.4)]"
             >
               <Plus className="w-4 h-4" />
               <span>Submit Your First Proposal</span>
-            </Link>
+            </LiquidGlassLink>
           </div>
         </div>
       ) : (
