@@ -472,3 +472,8 @@ button, .hive-glass { -webkit-user-select: none; user-select: none; -webkit-touc
 .hive-glass.hidden { display: none; }
 @media (min-width: 640px) { .hive-glass.hidden.sm\:inline-flex { display: inline-flex; } }
 @media (min-width: 768px) { .hive-glass.hidden.md\:inline-flex { display: inline-flex; } }
+
+/* Keep the reference lookup legible even before a reference is entered. */
+.hive-glass.btn-cut.track-search { background: #E7C226; color: #13120f; }
+.hive-glass.btn-cut.track-search:disabled { opacity: 1; background: #AE922B; color: #15130d; border-color: #BBA350; box-shadow: none; }
+.hive-glass.track-clear { position: absolute; }
