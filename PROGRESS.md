@@ -1,7 +1,7 @@
 # HIVE Civic — Project Progress
 
 > **Last updated:** 26 September 2026 (instinct branch)
-> **Current phase:** Citizen flow verified, admin login loop fixed and user-tested, profile name save user-tested; remaining authorization/backend matrix and cross-route visual polish
+> **Current phase:** UI passes published on `instinct`; live Supabase migration/security and real-device QA still pending. Not yet cleared for deployment.
 
 ## 1. Current Status
 
@@ -246,7 +246,7 @@ The first complete citizen-flow verification in AI Studio exposed two infrastruc
 
 **Status: VERIFIED WORKING in the AI Studio environment.**
 
-This milestone does not mark the remaining admin, moderator, RLS, storage, support, and full security test matrix as complete.
+This milestone does not mark the remaining admin, cross-role, RLS, storage, support, and full security test matrix as complete.
 
 # 5. Instinct Branch State and Verification
 
@@ -255,14 +255,14 @@ This milestone does not mark the remaining admin, moderator, RLS, storage, suppo
 - `package.json` includes Vitest, jsdom and React Testing Library in devDependencies. Vite is listed once (devDependencies).
 - `bun.lock` was regenerated as lockfileVersion 1 with Bun 1.3.14 after a Bun 1.4 lockfile proved incompatible with the user's Windows Bun 1.3.14. A clean `bun install --frozen-lockfile`, lint, build and test run passed with Bun 1.3.14.
 - Profile visual inspection used local desktop and mobile screenshots; authenticated live UI and citizen name save still need a separate check.
-- Code through commit `f64ef0f` was published to `instinct`; this documentation update follows it.
+- UI updates through `cee08c0` were published to `instinct` before this documentation update. The remote branch and local repository are separate: pulling locally does not prove live Supabase or deployment state.
 
 ---
 
 # 6. Still Required — Live Supabase Verification
 
 - [ ] Determine whether `supabase/migrations/001_security_hardening.sql` is applied to the actual Supabase project; do not rerun blindly
-- [ ] Verify migration succeeds without SQL errors
+- [ ] Determine actual applied migration versions and errors without blindly replaying SQL
 - [ ] Verify `profiles` role constraint
 - [ ] Verify `handle_new_user()` creates citizens
 - [ ] Verify `is_admin()` works for admin accounts
@@ -349,8 +349,19 @@ This milestone does not mark the remaining admin, moderator, RLS, storage, suppo
 - [x] Added Lenis smooth scrolling only on the public `/` page and an InView reveal adapted from motion-primitives for one lower section. Both respect reduced-motion preference; the custom cursor is hidden when motion is reduced.
 - [x] Checked local desktop and mobile hero screenshots and a citizen sign-in desktop screenshot. These are visual spot checks, not a complete route or device QA pass.
 - [x] Ran lint, build and existing admin/profile tests after the pass (see test log and commit validation). The build still reports a large chunk warning; no bundle optimization was claimed.
-- [ ] Inspect the lower welcome page and the scroll reveal in a reliable browser session; local headless capture did not prove this interaction.
+- [x] Inspected lower welcome sections in local desktop/mobile screenshots; scroll reveal interaction on a real device still needs verification.
 - [ ] Finish visual/accessibility/performance QA across all routes, breakpoints and actual devices. A signed-in data view was not visually checked in this pass.
+
+---
+
+# 8A. Subsequent UI passes on `instinct` (repository work)
+
+- [x] Round 2: lower welcome narrative and prototype notice, simpler citizen sign-in copy with troubleshooting details, native glass button/link controls in `src/components/ui/LiquidGlassButton.tsx`, particle loading states in `OrbNoise.tsx`. Existing honey/dark identity, video, and SceneCanvas retained.
+- [x] Visual QA fixes: full-width category-chip labels in a horizontal scroller, non-wrapping 1280px citizen navbar labels, mobile admin + action clearance, and centered larger orb on full-page loads.
+- [x] Round 3 mobile polish: corrected glass base display overriding responsive `hidden`, added safe-area-aware nav/viewport metadata and theme color, 16px input text on coarse pointers, touch feedback and selectable page content.
+- [x] Targeted follow-ups: shrank citizen-feed Search button; improved Track Search disabled-state contrast while preserving `disabled`, aligned its desktop button to the input, and returned clear-X inside the field.
+- [x] Local TypeScript lint, Vite production build and seven admin/profile tests passed after the Track Search fix. Build still warns about a ~2.13 MB JS chunk (~594 KB gzip). Inspected local desktop/mobile fixture screenshots; the fixture uses fabricated users/proposals, not live records.
+- [ ] Verify the UI on a real phone, on the deployed site, with real authenticated citizen/admin data, including slow network, keyboard, safe areas and reduced motion.
 
 ---
 
@@ -371,7 +382,7 @@ The product requirement remains a **fully 3D animated website**. Current 3D infr
 - [ ] Improve lighting/material quality
 - [ ] Improve camera choreography
 - [ ] Improve meaningful object interactions
-- [ ] Add polished loading states
+- [x] Add OrbNoise-based loading states across major routed pages; continue testing transition timing and error states
 - [ ] Add polished empty states
 - [ ] Add polished error states
 - [ ] Add reduced-motion behavior
@@ -380,6 +391,22 @@ The product requirement remains a **fully 3D animated website**. Current 3D infr
 - [ ] Test desktop performance
 
 Do not replace the existing 3D architecture with generic decorative backgrounds.
+
+---
+
+# 8B. Read-only code audit: open deployment risks, not proof of live exposure
+
+The following are code/documentation findings. No live Supabase permissions, bucket settings, or migration history were inspected for this audit. **Do not deploy publicly until those checks and the cross-role tests pass.**
+
+- [ ] Verify the actual live grants for legacy `increment_support` / `decrement_support`. Baseline schema and 001 grant authenticated execution, but **002 revokes it from authenticated and anon**. The earlier claim that the functions remain callable after the complete migration sequence was wrong; a risk exists only if 002 was not applied or grants later changed.
+- [ ] Check the public `suggestion-photos` bucket's live MIME/size limits and upload policy. Repository `schema.sql` upload policy checks only `bucket_id`; `storageService.ts` checks MIME/5 MB in the client, which is bypassable outside that client. Verify appropriate server-side limits and object-path rules.
+- [ ] Remove or replace the admin login's copyable `SchemaModal.tsx` baseline SQL, which predates migrations 001–004. Do not use it alone to initialize a deployment.
+- [ ] Decide whether `admin_notes` are meant to be visible to the submitting citizen; `CitizenSuggestionDetails.tsx` renders them. Public projections omit them.
+- [ ] Pin or eliminate the `motion@latest` CDN script in `index.html` after checking its usage; bundled `motion` is also installed. Split/profile the ~2.13 MB initial JS chunk.
+- [ ] Resolve `moderator` references left in frontend/baseline SQL against migration 001's `citizen | admin` role constraint.
+- [ ] Audit and remove unused packages only after dependency checks (`@google/genai`, `express`, `dotenv`, `@types/express`). Add a LICENSE file if MIT is indeed the intended license; footer currently claims MIT without one.
+- [ ] Review registration's six-character minimum and verify the actual Supabase Auth password policy. Consider signup abuse controls in the deployment configuration.
+- [ ] Audit live migration 001–003 status and independently confirm reported 004 effects, then test RLS, function grants, storage and all cross-role flows with real accounts.
 
 ---
 
@@ -415,10 +442,10 @@ Do not replace the existing 3D architecture with generic decorative backgrounds.
 # 11. Current Recommended Sequence
 
 1. Keep all work on `instinct`; preserve `main` until a reviewed merge.
-2. Check the live state of migrations 001–003 and confirm the reported 004 application without blindly replaying SQL; run the missing RLS/security matrix with real accounts.
+2. Check the live state of migrations 001–003 and confirm the reported 004 application without blindly replaying SQL; inspect legacy function grants and bucket settings, then run the missing RLS/security matrix with real accounts.
 3. Verify admin profile name persists on reload, then citizen name save and persistence; check non-admin rejection and admin status operations separately.
-4. Polish the existing honey/dark UX and route-aware 3D system in reviewable commits with mobile/desktop visual checks, reduced-motion coverage, tests, lint and build.
-5. Reconcile baseline schema and migrations, then prepare project documentation and demonstration.
+4. Verify recent honey/dark UX fixes on the deployed site and real devices; continue route-aware 3D polish in reviewable commits with reduced-motion coverage, tests, lint and build.
+5. Resolve the code-audit checklist and reconcile baseline schema/migrations, then prepare project documentation and demonstration.
 
 ---
 
