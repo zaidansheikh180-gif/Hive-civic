@@ -1,21 +1,11 @@
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { InView } from '../components/InView';
 import {
   ArrowRight,
-  Shield,
-  FileCheck,
-  Building2,
-  Users,
-  Compass,
-  Layers,
-  AlertTriangle,
   CheckCircle2,
-  Lock,
-  Eye,
-  Activity,
-  Cpu,
 } from 'lucide-react';
 
 export const WelcomeAbout: React.FC = () => {
@@ -64,18 +54,18 @@ export const WelcomeAbout: React.FC = () => {
 
           {/* Core Call to Action: ENTER HIVE */}
           <div className="pt-4 flex flex-wrap items-center gap-4">
-            <button
+            <LiquidGlassButton
               onClick={handleEnterHive}
               id="enter-hive-hero-btn"
               className="btn-cut px-8 py-4 text-sm sm:text-base font-bold uppercase tracking-wider flex items-center gap-3 group"
             >
               <span>{isAuthenticated ? 'Open HIVE Dashboard' : 'ENTER HIVE'}</span>
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1.5 text-[#0B0B0F]" />
-            </button>
+            </LiquidGlassButton>
 
             <a
               href="#how-it-works"
-              className="btn-cut-border px-6 py-4 text-xs font-mono uppercase tracking-wider text-neutral-300 hover:text-white"
+              className="hive-glass btn-cut-border px-6 py-4 text-xs font-mono uppercase tracking-wider text-neutral-300 hover:text-white"
             >
               <span>How it works &darr;</span>
             </a>
@@ -143,253 +133,62 @@ export const WelcomeAbout: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. THE PROBLEM & WHY HIVE EXISTS */}
-      <InView as="section" once variants={{ hidden: { opacity: 0, transform: "translateY(20px)" }, visible: { opacity: 1, transform: "translateY(0px)" } }} transition={{ duration: 0.55, ease: "easeOut" }} className="py-16 border-t border-[#CC9E33]/20 relative z-10 space-y-8">
-        <div className="max-w-3xl space-y-3">
-          <div className="text-xs font-mono uppercase tracking-widest text-[#E7C226]">
-            01 &bull; The need
+      {/* An editorial sequence: the problem, the route, and the boundary. */}
+      <InView as="section" once variants={{ hidden: { opacity: 0, transform: 'translateY(16px)' }, visible: { opacity: 1, transform: 'translateY(0px)' } }} transition={{ duration: 0.55, ease: 'easeOut' }} className="py-20 md:py-28 px-4 sm:px-8 -mx-4 sm:-mx-8 border-t border-[#CC9E33]/20 relative z-10 bg-[#0B0B0F]/95">
+        <div className="grid md:grid-cols-[1fr_1.2fr] gap-8 md:gap-20 items-start">
+          <div>
+            <p className="text-xs font-mono uppercase tracking-widest text-[#E7C226] mb-5">The problem</p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight leading-tight">Good ideas need a way forward.</h2>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold font-helvetica uppercase text-white tracking-tight">
-            Why HIVE exists
-          </h2>
-          <p className="text-sm sm:text-base text-neutral-300 leading-relaxed font-light">
-            An idea can disappear between the person who raised it and the team that could act on it.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel p-6 border border-red-500/20 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-mono font-bold">
-              01
-            </div>
-            <h3 className="text-base font-bold text-white uppercase">No clear receipt</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              A report goes in, but there is no reference number or way to see what happened next.
-            </p>
-          </div>
-
-          <div className="glass-panel p-6 border border-amber-500/20 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-bold">
-              02
-            </div>
-            <h3 className="text-base font-bold text-white uppercase">Unclear decisions</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              People rarely hear why a proposal moved forward, stalled, or was turned down.
-            </p>
-          </div>
-
-          <div className="glass-panel p-6 border border-[#E7C226]/20 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E7C226]/10 border border-[#E7C226]/30 flex items-center justify-center text-[#E7C226] font-mono font-bold">
-              03
-            </div>
-            <h3 className="text-base font-bold text-white uppercase">Scattered priorities</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              The same issue can be raised many times without a shared record of community support.
-            </p>
+          <div className="space-y-5 max-w-xl md:pt-10 text-base sm:text-lg leading-relaxed text-neutral-300">
+            <p>When a local issue is raised, it should not disappear into a form. The person who submitted it needs a record they can return to.</p>
+            <p>HIVE gives each proposal a reference number and a visible review history, so the next step is easier to find.</p>
           </div>
         </div>
       </InView>
 
-      {/* 3. HOW IT WORKS: THE 4-STAGE PIPELINE */}
-      <section id="how-it-works" className="py-16 border-t border-[#CC9E33]/20 relative z-10 space-y-10">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <div className="text-xs font-mono uppercase tracking-widest text-[#E7C226]">
-            02 &bull; The process
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold font-helvetica uppercase text-white tracking-tight">
-            How HIVE works
-          </h2>
-          <p className="text-xs sm:text-sm text-neutral-400">
-            Submit an idea, follow its reference number, and see its review history.
-          </p>
+      <section id="how-it-works" className="py-20 md:py-28 px-4 sm:px-8 -mx-4 sm:-mx-8 border-t border-[#CC9E33]/20 relative z-10 scroll-mt-20 bg-[#0B0B0F]/95">
+        <div className="max-w-2xl mb-10 md:mb-16">
+          <p className="text-xs font-mono uppercase tracking-widest text-[#E7C226] mb-5">The route</p>
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight">From a local issue to a clear record.</h2>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="glass-panel p-6 border-t-2 border-t-[#E7C226] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-full bg-[#E7C226]/10 text-[#E7C226] flex items-center justify-center font-mono font-bold text-xs">
-                01
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase">Intake</span>
-            </div>
-            <h3 className="text-sm font-bold text-white uppercase">Citizen Submission</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              Resident submits a proposal across 10 municipal categories with title, description, location text, and optional photo attachment.
-            </p>
-          </div>
-
-          <div className="glass-panel p-6 border-t-2 border-t-[#38BDF8] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-full bg-[#38BDF8]/10 text-[#38BDF8] flex items-center justify-center font-mono font-bold text-xs">
-                02
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase">Immutable ID</span>
-            </div>
-            <h3 className="text-sm font-bold text-white uppercase">DSB Reference Key</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              Database issues a unique alphanumeric reference ID (e.g. <code className="text-[#E7C226]">DSB-2026-7F3K9P</code>) for perpetual tracking.
-            </p>
-          </div>
-
-          <div className="glass-panel p-6 border-t-2 border-t-[#CC9E33] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-full bg-[#CC9E33]/10 text-[#CC9E33] flex items-center justify-center font-mono font-bold text-xs">
-                03
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase">Endorsement</span>
-            </div>
-            <h3 className="text-sm font-bold text-white uppercase">Community Support</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              Fellow residents inspect the proposal on the civic feed and click to endorse, signaling community demand to municipal planners.
-            </p>
-          </div>
-
-          <div className="glass-panel p-6 border-t-2 border-t-[#10B981] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-full bg-[#10B981]/10 text-[#10B981] flex items-center justify-center font-mono font-bold text-xs">
-                04
-              </span>
-              <span className="text-[10px] font-mono text-neutral-500 uppercase">Triage</span>
-            </div>
-            <h3 className="text-sm font-bold text-white uppercase">Official Transition</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              Authorized municipal administrators review proposals, transition statuses, and append public audit notes down to implementation.
-            </p>
-          </div>
+        <div className="border-t border-white/15">
+          {[
+            ['01', 'Tell us what needs attention', 'Describe the issue, its location, and what would help. You can add a photo.'],
+            ['02', 'Keep your reference number', 'Every submitted proposal gets an ID you can use to find it again.'],
+            ['03', 'See where it stands', 'Follow the review stage and any notes added to the record.'],
+            ['04', 'Support other proposals', 'Explore ideas from your community and endorse the ones you care about.'],
+          ].map(([number, title, description]) => (
+            <InView key={number} once variants={{ hidden: { opacity: 0, transform: 'translateY(12px)' }, visible: { opacity: 1, transform: 'translateY(0px)' } }} transition={{ duration: 0.45, ease: 'easeOut' }} className="grid sm:grid-cols-[5rem_1fr_1.2fr] gap-2 sm:gap-8 py-7 sm:py-9 border-b border-white/15 items-baseline">
+              <span className="font-mono text-[#E7C226] text-sm">{number}</span>
+              <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">{title}</h3>
+              <p className="text-sm sm:text-base text-neutral-400 leading-relaxed max-w-lg">{description}</p>
+            </InView>
+          ))}
         </div>
       </section>
 
-      {/* 4. WHO IT IS FOR: CITIZENS & ADMINISTRATORS */}
-      <section className="py-16 border-t border-[#CC9E33]/20 relative z-10 space-y-10">
-        <div className="max-w-3xl space-y-2">
-          <div className="text-xs font-mono uppercase tracking-widest text-[#E7C226]">
-            03 &bull; Stakeholders
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold font-helvetica uppercase text-white tracking-tight">
-            Designed for Both Halves of the City
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Citizens Panel */}
-          <div className="glass-panel p-8 border border-[#E7C226]/30 space-y-6 relative overflow-hidden">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[#E7C226]/10 border border-[#E7C226]/40 flex items-center justify-center text-[#E7C226]">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black uppercase text-white font-helvetica">
-                  What Citizens Can Do
-                </h3>
-                <span className="text-xs font-mono text-[#CC9E33]/80">Residents &bull; Neighborhood Associations</span>
-              </div>
-            </div>
-
-            <ul className="space-y-3 text-xs text-neutral-300">
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#E7C226] flex-shrink-0 mt-0.5" />
-                <span><strong>Submit Infrastructure Ideas:</strong> Log road hazards, missing crosswalks, waste overflow, and park repairs.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#E7C226] flex-shrink-0 mt-0.5" />
-                <span><strong>Privacy Controls:</strong> Choose &ldquo;Submit Anonymously&rdquo; to protect personal identity from public display.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#E7C226] flex-shrink-0 mt-0.5" />
-                <span><strong>Track Life-Cycle:</strong> Query your DSB Reference ID anytime to view real-time stage updates and official notes.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#E7C226] flex-shrink-0 mt-0.5" />
-                <span><strong>My Suggestions Portfolio:</strong> View all previous proposals submitted by your authenticated account.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#E7C226] flex-shrink-0 mt-0.5" />
-                <span><strong>Community Endorsements:</strong> Support proposals from neighbors to elevate critical issues to municipal priority.</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Administrators Panel */}
-          <div className="glass-panel p-8 border border-[#38BDF8]/30 space-y-6 relative overflow-hidden">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[#38BDF8]/10 border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8]">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black uppercase text-white font-helvetica">
-                  What Administrators Can Do
-                </h3>
-                <span className="text-xs font-mono text-[#38BDF8]/80">Municipal Directors &bull; Civic Coordinators</span>
-              </div>
-            </div>
-
-            <ul className="space-y-3 text-xs text-neutral-300">
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#38BDF8] flex-shrink-0 mt-0.5" />
-                <span><strong>Triage Queue:</strong> Filter submissions across 10 municipal categories and 6 distinct resolution stages.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#38BDF8] flex-shrink-0 mt-0.5" />
-                <span><strong>Transition Statuses:</strong> Move issues through submitted &rarr; under_review &rarr; accepted &rarr; planned &rarr; implemented (or rejected).</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#38BDF8] flex-shrink-0 mt-0.5" />
-                <span><strong>Publish Official Notes:</strong> Document why an item was accepted, contractor schedules, or budget considerations.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#38BDF8] flex-shrink-0 mt-0.5" />
-                <span><strong>Demographic Analytics:</strong> Inspect distribution charts to identify high-urgency districts and neglected infrastructure.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#38BDF8] flex-shrink-0 mt-0.5" />
-                <span><strong>Verifiable Ledger:</strong> Maintain tamper-evident history with database-enforced Row Level Security.</span>
-              </li>
-            </ul>
+      <InView as="section" once variants={{ hidden: { opacity: 0, transform: 'translateY(16px)' }, visible: { opacity: 1, transform: 'translateY(0px)' } }} transition={{ duration: 0.55, ease: 'easeOut' }} className="py-16 md:py-20 px-4 sm:px-8 -mx-4 sm:-mx-8 border-t border-[#CC9E33]/20 relative z-10 bg-[#0B0B0F]/95">
+        <div className="max-w-3xl">
+          <p className="text-xs font-mono uppercase tracking-widest text-[#E7C226] mb-5">About this project</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-5">Built to make the process easier to follow.</h2>
+          <p className="text-neutral-300 leading-relaxed mb-6">Residents can submit and track proposals. Reviewers can update their status and add notes. The record stays in one place.</p>
+          <div className="border-l-2 border-[#E7C226] pl-5 text-sm text-neutral-300 leading-relaxed">
+            <strong className="block text-white mb-1">An academic research prototype, not a government service.</strong>
+            HIVE does not contact emergency services or start official municipal response timelines. For an immediate safety issue, contact your local emergency service directly.
           </div>
         </div>
-      </section>
+      </InView>
 
-      {/* 5. ACADEMIC PROTOTYPE NOTICE & NON-GOVERNMENTAL DISCLAIMER */}
-      <section className="py-12 border-t border-[#CC9E33]/20 relative z-10">
-        <div className="glass-panel p-6 sm:p-8 border border-amber-500/30 bg-amber-500/5 rounded-2xl space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-base font-bold font-helvetica uppercase text-white tracking-wide">
-                Important Academic Prototype Notice & Legal Disclaimer
-              </h3>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                <strong>HIVE is an academic and community research prototype</strong> designed to investigate the design, trust dynamics, and human-computer interactions of transparent municipal suggestion boxes.
-              </p>
-              <p className="text-xs text-amber-300/90 leading-relaxed font-mono">
-                NOTICE: HIVE is NOT an official government portal, municipal agency, or 911/emergency dispatch system.
-                Submissions made here do not trigger legally binding municipal statutory timelines. For acute emergencies, hazardous gas leaks, or immediate life safety risks, please contact your local emergency response authorities immediately.
-              </p>
-            </div>
-          </div>
+      <section className="py-20 md:py-28 px-4 sm:px-8 -mx-4 sm:-mx-8 border-t border-[#CC9E33]/20 relative z-10 bg-[#0B0B0F]/95 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-8">
+        <div className="max-w-xl">
+          <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">Have something to raise?</h2>
+          <p className="text-neutral-400">Start a proposal, or sign in to see what your neighbors are working on.</p>
         </div>
-      </section>
-
-      {/* 6. FINAL CALL TO ACTION */}
-      <section className="py-16 text-center space-y-6 relative z-10">
-        <h2 className="text-3xl sm:text-5xl font-black uppercase text-white font-helvetica tracking-tight">
-          Ready to Participate?
-        </h2>
-        <p className="text-xs sm:text-sm text-neutral-400 max-w-md mx-auto">
-          Enter the HIVE civic network to submit proposals, track community infrastructure, and inspect municipal progress.
-        </p>
-        <div>
-          <button
-            onClick={handleEnterHive}
-            id="enter-hive-footer-btn"
-            className="btn-cut px-10 py-4 text-base font-bold uppercase tracking-wider inline-flex items-center gap-3 group"
-          >
-            <span>{isAuthenticated ? 'Open HIVE Dashboard' : 'ENTER HIVE'}</span>
-            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1.5 text-[#0B0B0F]" />
-          </button>
-        </div>
+        <LiquidGlassButton onClick={handleEnterHive} id="enter-hive-footer-btn" className="btn-cut px-8 py-4 text-sm font-bold uppercase tracking-wider inline-flex items-center gap-3 group self-start sm:self-auto">
+          <span>{isAuthenticated ? 'Open HIVE' : 'Enter HIVE'}</span>
+          <ArrowRight className="w-5 h-5 text-[#0B0B0F]" />
+        </LiquidGlassButton>
       </section>
     </div>
   );
