@@ -201,7 +201,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
       {/* Loading state */}
       {loading && (
         <div className="p-12 flex flex-col items-center gap-3 text-center">
-          <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
+          <OrbNoise width={72} height={72} density={90} speed={28} pointer={{ drag: 0 }} />
           <span className="text-xs font-mono text-[#CC9E33]">Loading proposals...</span>
         </div>
       )}
