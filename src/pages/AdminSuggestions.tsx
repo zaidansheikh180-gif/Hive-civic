@@ -1,3 +1,5 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -70,30 +72,30 @@ export const AdminSuggestions: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 border border-[#CC9E33]/30">
         <div>
           <div className="text-[10px] font-mono uppercase tracking-widest text-[#E7C226]">
-            Civic Registry Workspace
+            Review queue
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold font-helvetica uppercase text-white tracking-tight">
             Suggestion Management
           </h1>
           <p className="text-xs text-neutral-400 font-mono">
-            Full administrative ledger, triage actions, and lifecycle status audits.
+            Review incoming proposals and follow their status.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
+          <LiquidGlassLink
             to="/admin"
             className="btn-cut-border px-4 py-2 text-xs font-semibold uppercase"
           >
             <span>Overview Metrics</span>
-          </Link>
-          <Link
+          </LiquidGlassLink>
+          <LiquidGlassLink
             to="/submit"
             className="btn-cut px-4 py-2 text-xs font-bold uppercase flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Entry</span>
-          </Link>
+          </LiquidGlassLink>
         </div>
       </div>
 
@@ -158,13 +160,13 @@ export const AdminSuggestions: React.FC = () => {
       {/* Suggestions List Table */}
       <div className="glass-panel border border-[#CC9E33]/30 overflow-hidden">
         <div className="p-4 bg-white/[0.02] border-b border-white/10 flex items-center justify-between text-xs font-mono text-neutral-400">
-          <span>Displaying {suggestions.length} Civic Records</span>
-          <span>Click row to open comprehensive administrative dossier</span>
+          <span>Showing {suggestions.length} proposals</span>
+          <span>Open a proposal to review details</span>
         </div>
 
         {loading ? (
           <div className="p-12 text-center text-xs font-mono text-[#E7C226]">
-            Loading civic registry items...
+            <OrbNoise width={48} height={48} density={90} pointer={{ drag: 0 }} /><span className="block mt-2">Loading proposals...</span>
           </div>
         ) : suggestions.length === 0 ? (
           <div className="p-12 text-center text-neutral-400 font-mono text-xs">
