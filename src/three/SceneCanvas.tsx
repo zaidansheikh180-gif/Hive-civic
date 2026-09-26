@@ -37,7 +37,7 @@ export const SceneCanvas: React.FC<SceneCanvasProps> = ({ sceneType, currentStat
 
   if (!hasWebGL || hasError) {
     return (
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-40 sm:opacity-55">
         {/* Graceful 2D Fallback with Ambient Lighting */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0F] via-[#12121A] to-[#0B0B0F]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(231,194,38,0.08)_0%,transparent_70%)]" />
@@ -46,7 +46,7 @@ export const SceneCanvas: React.FC<SceneCanvasProps> = ({ sceneType, currentStat
   }
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-40 sm:opacity-55">
       <Canvas
         camera={{ position: [0, 0, 7], fov: 45 }}
         dpr={[1, 1.5]}
