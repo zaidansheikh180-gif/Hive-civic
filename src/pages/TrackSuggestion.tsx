@@ -1,3 +1,6 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -130,13 +133,13 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
       <div className="text-center max-w-2xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E7C226]/10 border border-[#E7C226]/30 text-[#E7C226] text-xs font-mono uppercase tracking-widest">
           <Search className="w-3 h-3" />
-          <span>Transparent Civic Tracking</span>
+          <span>Find a proposal</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-bold font-helvetica uppercase text-white tracking-tight">
-          Track Suggestion Status
+          Track a proposal
         </h1>
         <p className="text-xs sm:text-sm text-neutral-300 font-apoc italic">
-          Enter your unique DSB reference number to view real-time stage progression, public works notes, and resolution updates.
+          Enter the reference number you received when you submitted your proposal to see its status and any review notes.
         </p>
 
         {/* Input Bar */}
@@ -150,23 +153,23 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
               className="w-full pl-4 pr-10 py-3 rounded-xl bg-black/60 border border-white/20 text-white font-mono placeholder-neutral-500 text-sm focus:outline-none focus:border-[#E7C226] focus:ring-1 focus:ring-[#E7C226]"
             />
             {inputRef && (
-              <button
+              <LiquidGlassButton
                 type="button"
                 onClick={() => setInputRef('')}
-                className="absolute right-3 top-3.5 text-neutral-400 hover:text-white text-xs font-mono"
+                aria-label="Clear reference number" className="absolute right-2 top-1.5 w-9 h-9 p-0 text-neutral-400 hover:text-white text-xs font-mono"
               >
                 ✕
-              </button>
+              </LiquidGlassButton>
             )}
           </div>
-          <button
+          <LiquidGlassButton
             type="submit"
             disabled={loading || !inputRef.trim()}
             className="btn-cut px-6 py-3 text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                <OrbNoise width={22} height={22} density={60} speed={28} pointer={{ drag: 0 }} />
                 <span>Searching...</span>
               </span>
             ) : (
@@ -175,7 +178,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
                 <span>Search</span>
               </>
             )}
-          </button>
+          </LiquidGlassButton>
         </form>
 
         {/* Quick Click References from actual Supabase submissions */}
@@ -183,13 +186,13 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
           <div className="pt-2 flex flex-wrap items-center justify-center gap-2 text-xs font-mono text-neutral-400">
             <span>Recent Proposals:</span>
             {recentSuggestions.map((item) => (
-              <button
+              <LiquidGlassButton
                 key={item.id}
                 onClick={() => handleSampleClick(item.reference_id)}
                 className="px-2 py-0.5 rounded bg-white/5 hover:bg-[#E7C226]/20 border border-white/10 hover:border-[#E7C226]/50 text-[#E7C226] transition-all text-[11px]"
               >
                 {item.reference_id}
-              </button>
+              </LiquidGlassButton>
             ))}
           </div>
         )}
@@ -197,9 +200,9 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
 
       {/* Loading state */}
       {loading && (
-        <div className="p-12 text-center">
-          <div className="w-8 h-8 rounded-full border-2 border-[#E7C226] border-t-transparent animate-spin mx-auto mb-3" />
-          <span className="text-xs font-mono text-[#CC9E33]">Querying Supabase Ledger...</span>
+        <div className="p-12 flex flex-col items-center gap-3 text-center">
+          <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
+          <span className="text-xs font-mono text-[#CC9E33]">Loading proposals...</span>
         </div>
       )}
 
@@ -215,9 +218,9 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
             Please verify formatting (e.g. DSB-2026-XXXXXX) or submit a new proposal.
           </p>
           <div className="pt-2">
-            <Link to="/app/submit" className="btn-cut px-6 py-2.5 text-xs font-bold uppercase inline-block">
+            <LiquidGlassLink to="/app/submit" className="btn-cut px-6 py-2.5 text-xs font-bold uppercase inline-block">
               Submit New Suggestion
-            </Link>
+            </LiquidGlassLink>
           </div>
         </div>
       )}
@@ -226,7 +229,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
       {!loading && suggestion && (
         <div className="space-y-6 animate-fadeUp">
           {/* Main Card */}
-          <div className="glass-panel p-6 sm:p-8 border border-[#E7C226]/40 shadow-[0_0_40px_rgba(231,194,38,0.15)] rounded-2xl space-y-6">
+          <div className="glass-panel p-6 sm:p-8 border border-[#E7C226]/40 rounded-2xl space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-mono text-[#E7C226] bg-[#E7C226]/10 px-3 py-1 rounded border border-[#E7C226]/30">
@@ -283,7 +286,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
 
             {/* Support button */}
             <div className="pt-2 flex items-center justify-between">
-              <button
+              <LiquidGlassButton
                 onClick={handleSupportClick}
                 className={`btn-cut px-5 py-2 text-xs font-mono flex items-center gap-2 ${
                   hasSupported ? 'bg-[#E7C226] text-black font-bold' : ''
@@ -291,7 +294,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
               >
                 <ThumbsUp className="w-3.5 h-3.5" />
                 <span>Support ({supportCount})</span>
-              </button>
+              </LiquidGlassButton>
 
               <span className="text-[11px] font-mono text-neutral-400">
                 Official Reference: {suggestion.reference_id}
