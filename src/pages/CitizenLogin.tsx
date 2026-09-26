@@ -1,3 +1,5 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -12,10 +14,6 @@ import {
   ArrowRight,
   ShieldCheck,
   AlertCircle,
-  Activity,
-  CheckCircle2,
-  RefreshCw,
-  ExternalLink,
 } from 'lucide-react';
 
 export const CitizenLogin: React.FC = () => {
@@ -54,7 +52,7 @@ export const CitizenLogin: React.FC = () => {
     try {
       const res = await authService.signIn(email, password);
       if (res.error) {
-        setErrorMessage(res.error);
+        setErrorMessage(res.error.toLowerCase().includes('supabase') || res.error.toLowerCase().includes('failed to fetch') ? 'Sign-in is unavailable right now. Please try again later.' : res.error);
         // Automatically check reachability if network error occurred
         if (
           res.error.toLowerCase().includes('failed to fetch') ||
@@ -74,46 +72,25 @@ export const CitizenLogin: React.FC = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 relative z-10">
-      <div className="w-full max-w-md glass-panel p-8 border border-[#E7C226]/30 shadow-[0_0_50px_rgba(231,194,38,0.2)] rounded-2xl relative overflow-hidden animate-fadeUp">
-        {/* Glow corner accent */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#E7C226]/10 blur-2xl rounded-full pointer-events-none" />
+      <div className="w-full max-w-md glass-panel p-8 border border-[#E7C226]/30 shadow-[0_20px_60px_rgba(0,0,0,0.25)] rounded-2xl relative overflow-hidden animate-fadeUp">
 
         {/* Header */}
         <div className="text-center space-y-2 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-[#E7C226]/10 border border-[#E7C226]/40 flex items-center justify-center text-[#E7C226] mx-auto shadow-[0_0_20px_rgba(231,194,38,0.25)]">
+          <div className="w-12 h-12 rounded-2xl bg-[#E7C226]/10 border border-[#E7C226]/40 flex items-center justify-center text-[#E7C226] mx-auto ">
             <Lock className="w-6 h-6" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-helvetica">
             Citizen Sign In
           </h1>
           <p className="text-xs text-neutral-400 font-mono">
-            Enter HIVE to submit, endorse & track municipal proposals
+            Sign in to submit an idea and follow its progress
           </p>
 
-          {/* Safe Diagnostics Pill */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 text-[11px] font-mono px-3 py-0.5 rounded-full border ${
-                status.SUPABASE_CLIENT === 'initialized'
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  status.SUPABASE_CLIENT === 'initialized'
-                    ? 'bg-emerald-400'
-                    : 'bg-amber-400'
-                }`}
-              />
-              <span>Client: {status.SUPABASE_CLIENT}</span>
-            </span>
-
-            <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-700/60 text-neutral-300">
-              <span className="text-neutral-500">Host:</span>
-              <span className="truncate max-w-[180px]">{status.SUPABASE_HOSTNAME}</span>
-            </span>
-          </div>
+          {status.SUPABASE_CLIENT !== 'initialized' && (
+            <p role="status" className="mt-4 text-sm text-amber-200 leading-relaxed">
+              Sign-in is unavailable in this preview. Account access needs to be set up before you can continue.
+            </p>
+          )}
         </div>
 
         {/* Error Alert with Diagnostics */}
@@ -124,54 +101,17 @@ export const CitizenLogin: React.FC = () => {
               <div className="leading-relaxed font-sans">{errorMessage}</div>
             </div>
 
-            {/* Reachability diagnostics details if available */}
-            {reachability && (
-              <div className="mt-2 pt-2 border-t border-red-500/20 text-[11px] font-mono space-y-1 text-neutral-300 bg-black/40 p-2.5 rounded-lg">
-                <div className="text-neutral-400 font-bold uppercase tracking-wider text-[10px]">
-                  Direct Network Ping Result
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-400">Target Host:</span>
-                  <span className="text-white font-bold">{reachability.hostname}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-400">Network Reachable:</span>
-                  <span className={reachability.reachable ? 'text-emerald-400' : 'text-red-400 font-bold'}>
-                    {reachability.reachable ? 'Reachable (200 OK)' : 'Unreachable (Failed to connect)'}
-                  </span>
-                </div>
-                {reachability.error && (
-                  <div className="text-red-300 break-all pt-1">
-                    <span className="text-neutral-400">Reason: </span>
-                    {reachability.isDnsOrNetworkFailure
-                      ? 'DNS NXDOMAIN / Host name not resolved. The domain does not exist or the project is paused/deleted.'
-                      : reachability.error}
-                  </div>
-                )}
+            <details className="text-xs text-neutral-300 border-t border-red-500/20 pt-3">
+              <summary className="cursor-pointer text-[#E7C226]">Connection details for troubleshooting</summary>
+              <div className="mt-3 space-y-2 font-mono break-words">
+                <p>Client: {status.SUPABASE_CLIENT}; host: {status.SUPABASE_HOSTNAME}</p>
+                {reachability && <p>Reachability: {reachability.reachable ? 'reachable' : 'unreachable'} ({reachability.hostname})</p>}
+                {reachability?.error && <p>{reachability.error}</p>}
+                <LiquidGlassButton type="button" onClick={handleTestConnection} disabled={testingReachability} className="text-[#E7C226] underline">
+                  {testingReachability ? 'Checking...' : 'Check connection'}
+                </LiquidGlassButton>
               </div>
-            )}
-
-            <div className="pt-1 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={handleTestConnection}
-                disabled={testingReachability}
-                className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[#E7C226] hover:underline"
-              >
-                <RefreshCw className={`w-3 h-3 ${testingReachability ? 'animate-spin' : ''}`} />
-                <span>{testingReachability ? 'Pinging Supabase...' : 'Test Connection'}</span>
-              </button>
-
-              <a
-                href="https://supabase.com/dashboard"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-400 hover:text-white"
-              >
-                <span>Supabase Dashboard</span>
-                <ExternalLink className="w-2.5 h-2.5" />
-              </a>
-            </div>
+            </details>
           </div>
         )}
 
@@ -219,14 +159,14 @@ export const CitizenLogin: React.FC = () => {
             </div>
           </div>
 
-          <button
+          <LiquidGlassButton
             type="submit"
             disabled={loading}
-            className="w-full btn-cut py-4 text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 mt-4 shadow-[0_0_25px_rgba(231,194,38,0.35)] disabled:opacity-50"
+            className="w-full btn-cut py-4 text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 mt-4  disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                <OrbNoise width={22} height={22} density={60} speed={28} pointer={{ drag: 0 }} />
                 <span>Verifying...</span>
               </span>
             ) : (
@@ -235,7 +175,7 @@ export const CitizenLogin: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
-          </button>
+          </LiquidGlassButton>
         </form>
 
         {/* Footer Navigation */}
