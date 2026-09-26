@@ -59,7 +59,9 @@ begin
   return result_row;
 end;
 $$;
-revoke all on function public.attach_suggestion_photo(uuid, text) from public;
+-- Supabase can have direct API-role default grants in addition to PUBLIC.
+-- Revoke every default route before granting only the signed-in role.
+revoke all on function public.attach_suggestion_photo(uuid, text) from public, anon, authenticated;
 grant execute on function public.attach_suggestion_photo(uuid, text) to authenticated;
 
 -- The hardened public view in migration 001 exposed only photo_url. New rows
