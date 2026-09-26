@@ -1,7 +1,7 @@
 # HIVE Civic — Project Progress
 
-> **Last updated:** 24 September 2026
-> **Current phase:** Citizen flow verified; admin/moderator and remaining backend/security verification
+> **Last updated:** 26 September 2026 (instinct branch)
+> **Current phase:** Citizen flow verified, admin login loop fixed and user-tested, profile name save user-tested; remaining authorization/backend matrix and visual polish
 
 ## 1. Current Status
 
@@ -9,7 +9,7 @@ HIVE is a functional civic suggestion-platform prototype with a React/TypeScript
 
 The project has moved beyond the initial prototype architecture. The current priority is to make the existing implementation secure and verifiable before spending the next major effort on visual polish.
 
-**Important:** A committed Supabase migration is not proof that the live Supabase project has executed it. Live database execution still needs verification in AI Studio/Supabase.
+**Important:** The user reports running the SQL for `004_profile_name_only.sql` in Supabase and receiving "Name saved" after an admin profile edit. This verifies that one save path by user report, not an independent database audit. The live application and test matrix for 001–003 remain unverified; do not infer them from the 004 report.
 
 ---
 
@@ -52,6 +52,8 @@ The project has moved beyond the initial prototype architecture. The current pri
 - [x] Admin suggestion details/workspace
 - [x] Status management UI
 - [x] Admin notes support
+- [x] Fixed admin login redirect loop on `instinct`: removed synchronous `getCurrentAdmin()` checks from AdminDashboard, AdminSuggestions, and SuggestionDetails; dashboard now loads the verified profile asynchronously. User reports entering the admin dashboard after local retest.
+- [x] Added `/admin/profile` and `/app/profile` with display-name editing, read-only email and role, and navbar links. Admin name save reported successful by user. Citizen name save not yet user-tested.
 
 ## Domain model
 
@@ -141,6 +143,9 @@ The project has moved beyond the initial prototype architecture. The current pri
 - [x] Frontend support toggling now uses authenticated database state
 
 ## RLS hardening migration
+
+- [x] Added migrations `002_security_function_privileges.sql`, `003_rls_performance_hardening.sql`, and `004_profile_name_only.sql` in the repository. Migration 004 grants authenticated clients UPDATE on `full_name` only and restricts updates to their own profile row. The prior 003 policy checks that a citizen cannot change their existing role; do not claim a demonstrated self-promotion flaw.
+- [x] User reports running the 004 SQL in live Supabase and seeing "Name saved" on the admin profile. Independent grant/RLS audit and 001–003 live status still pending.
 
 - [x] Added `supabase/migrations/001_security_hardening.sql`
 - [x] Removed broad public base-table suggestion read policy
@@ -243,26 +248,20 @@ The first complete citizen-flow verification in AI Studio exposed two infrastruc
 
 This milestone does not mark the remaining admin, moderator, RLS, storage, support, and full security test matrix as complete.
 
-# 5. Current Repository Changes Awaiting AI Studio Pull
+# 5. Instinct Branch State and Verification
 
-The current GitHub revision includes:
-
-```text
-src/services/authService.ts
-src/services/suggestionService.ts
-src/App.tsx
-supabase/migrations/001_security_hardening.sql
-ARCHITECTURE.md
-PROGRESS.md
-```
-
-These changes should be pulled into AI Studio before continuing development.
+- `instinct` is the working branch; `main` has not received these admin/profile fixes or visual work.
+- Admin loop regression and profile page tests: 7/7 pass locally; TypeScript lint and Vite production build pass.
+- `package.json` includes Vitest, jsdom and React Testing Library in devDependencies. Vite is listed once (devDependencies).
+- `bun.lock` was regenerated as lockfileVersion 1 with Bun 1.3.14 after a Bun 1.4 lockfile proved incompatible with the user's Windows Bun 1.3.14. A clean `bun install --frozen-lockfile`, lint, build and test run passed with Bun 1.3.14.
+- Profile visual inspection used local desktop and mobile screenshots; authenticated live UI and citizen name save still need a separate check.
+- Code through commit `f64ef0f` was published to `instinct`; this documentation update follows it.
 
 ---
 
 # 6. Still Required — Live Supabase Verification
 
-- [ ] Execute/apply `supabase/migrations/001_security_hardening.sql` against the actual Supabase project
+- [ ] Determine whether `supabase/migrations/001_security_hardening.sql` is applied to the actual Supabase project; do not rerun blindly
 - [ ] Verify migration succeeds without SQL errors
 - [ ] Verify `profiles` role constraint
 - [ ] Verify `handle_new_user()` creates citizens
@@ -326,9 +325,13 @@ These changes should be pulled into AI Studio before continuing development.
 
 ## Admin
 
-- [ ] Admin login
+- [x] Admin profile display-name save — user reports the "Name saved" message after running 004 SQL (not independently checked against Supabase)
+- [ ] Citizen profile display-name save and persisted readback
+- [ ] Profile permissions: forged client cannot write role/email or another profile row
+
+- [x] Admin login — user reports entering the admin dashboard after the branch fix
 - [ ] Non-admin admin-login rejection
-- [ ] Admin dashboard statistics
+- [ ] Admin dashboard statistics (landing on dashboard verified by user; figures not checked)
 - [ ] Admin suggestion list
 - [ ] Admin details
 - [ ] Status update
@@ -399,33 +402,11 @@ Do not replace the existing 3D architecture with generic decorative backgrounds.
 
 # 11. Current Recommended Sequence
 
-```text
-1. Pull current GitHub changes into AI Studio
-        ↓
-2. Apply 001_security_hardening.sql to the real Supabase project
-        ↓
-3. Run TypeScript/lint/build
-        ↓
-4. Test citizen registration/login/session
-        ↓
-5. Test RLS using citizen/admin accounts
-        ↓
-6. Test suggestion creation + UUID/reference ID
-        ↓
-7. Test status-history triggers
-        ↓
-8. Test photo attachment
-        ↓
-9. Test community support
-        ↓
-10. Fix every failed test
-        ↓
-11. Update ARCHITECTURE.md + PROGRESS.md
-        ↓
-12. Push verified state to GitHub
-        ↓
-13. Begin full 3D/UX polish
-```
+1. Keep all work on `instinct`; preserve `main` until a reviewed merge.
+2. Check the live state of migrations 001–003 and confirm the reported 004 application without blindly replaying SQL; run the missing RLS/security matrix with real accounts.
+3. Verify admin profile name persists on reload, then citizen name save and persistence; check non-admin rejection and admin status operations separately.
+4. Polish the existing honey/dark UX and route-aware 3D system in reviewable commits with mobile/desktop visual checks, reduced-motion coverage, tests, lint and build.
+5. Reconcile baseline schema and migrations, then prepare project documentation and demonstration.
 
 ---
 
@@ -464,10 +445,10 @@ HIVE is complete only when:
 
 ### P0 — Do now
 
-1. Pull GitHub hardening changes into AI Studio.
-2. Apply the security migration to the live Supabase project.
-3. Verify RLS/auth with real accounts.
-4. Run lint/build and fix errors.
+1. Verify live migration state (001–003 unknown; 004 reported run by user).
+2. Run the remaining RLS/auth matrix with real accounts.
+3. Verify persisted admin/citizen profile names and role isolation.
+4. Keep lint/build/tests green while polishing the instinct branch.
 5. Test the complete citizen/admin data flows.
 
 ### P1 — After backend verification
