@@ -1,3 +1,6 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -116,32 +119,32 @@ export const CitizenAppFeed: React.FC = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#E7C226]">
               <span className="w-2 h-2 rounded-full bg-[#E7C226] animate-pulse" />
-              <span>Civic Ledger &bull; Live Community Stream</span>
+              <span>Community proposals</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black uppercase text-white font-helvetica tracking-tight">
               {currentUser ? `Welcome, ${currentUser.full_name}` : 'Civic Community Feed'}
             </h1>
             <p className="text-xs text-neutral-400 font-mono">
-              Inspect active infrastructure initiatives, submit new proposals, and endorse neighborhood solutions.
+              Explore local proposals, share an idea, or follow its progress.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Link
+            <LiquidGlassLink
               to="/app/suggestions"
               className="btn-cut-border px-4 py-2.5 text-xs font-mono uppercase tracking-wider flex items-center gap-2"
             >
               <FolderHeart className="w-4 h-4 text-[#E7C226]" />
               <span>My Suggestions</span>
-            </Link>
+            </LiquidGlassLink>
 
-            <Link
+            <LiquidGlassLink
               to="/app/submit"
-              className="btn-cut px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(231,194,38,0.4)]"
+              className="btn-cut px-6 py-2.5 text-xs font-extrabold uppercase tracking-wider flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Submit Suggestion</span>
-            </Link>
+            </LiquidGlassLink>
           </div>
         </div>
 
@@ -151,18 +154,18 @@ export const CitizenAppFeed: React.FC = () => {
             <div className="flex items-start gap-3">
               <Database className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
-                <strong className="text-white">Supabase Schema Initialization Required:</strong>
+                <strong className="text-white">This preview is not connected yet.</strong>
                 <p className="text-neutral-300 mt-0.5">
-                  The PostgreSQL tables have not been created yet in your Supabase project. Click below to copy the schema to your SQL Editor.
+                  The proposal feed needs database setup. Project owners can inspect the setup details below.
                 </p>
               </div>
             </div>
-            <button
+            <LiquidGlassButton
               onClick={() => setIsSchemaModalOpen(true)}
               className="btn-cut px-4 py-2 text-xs font-bold uppercase tracking-wider flex-shrink-0"
             >
-              Copy SQL Schema
-            </button>
+              View setup details
+            </LiquidGlassButton>
           </div>
         )}
 
@@ -216,38 +219,38 @@ export const CitizenAppFeed: React.FC = () => {
             />
             <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3.5" />
           </div>
-          <button
+          <LiquidGlassButton
             type="submit"
             className="btn-cut px-6 py-3 text-xs font-bold uppercase tracking-wider"
           >
             Search
-          </button>
+          </LiquidGlassButton>
         </form>
 
         {/* Category Scroll Filter (10 exact categories) */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          <button
+          <LiquidGlassButton
             onClick={() => setSelectedCategory('All')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all ${
               selectedCategory === 'All'
-                ? 'bg-[#E7C226] text-black font-bold shadow-[0_0_12px_rgba(231,194,38,0.4)]'
+                ? 'bg-[#E7C226] text-black font-bold'
                 : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
             }`}
           >
             All Categories
-          </button>
+          </LiquidGlassButton>
           {SUGGESTION_CATEGORIES.map((cat) => (
-            <button
+            <LiquidGlassButton
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all ${
                 selectedCategory === cat
-                  ? 'bg-[#E7C226] text-black font-bold shadow-[0_0_12px_rgba(231,194,38,0.4)]'
+                  ? 'bg-[#E7C226] text-black font-bold'
                   : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
               }`}
             >
               {cat}
-            </button>
+            </LiquidGlassButton>
           ))}
         </div>
 
@@ -288,8 +291,8 @@ export const CitizenAppFeed: React.FC = () => {
       {loading ? (
         <div className="min-h-[40vh] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 rounded-full border-2 border-[#E7C226] border-t-transparent animate-spin" />
-            <span className="text-xs font-mono text-[#CC9E33]">Querying Supabase Ledger...</span>
+            <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
+            <span className="text-xs font-mono text-[#CC9E33]">Loading proposals...</span>
           </div>
         </div>
       ) : suggestions.length === 0 ? (
@@ -303,12 +306,12 @@ export const CitizenAppFeed: React.FC = () => {
           <p className="text-xs text-neutral-400 max-w-md mx-auto font-mono">
             {searchTerm || selectedCategory !== 'All' || selectedStatus !== 'All'
               ? 'No proposals matched your current search filters.'
-              : 'The civic registry has not received any submissions yet. Be the first to shape your neighborhood!'}
+              : 'No proposals are available yet.'}
           </p>
           <div className="pt-2">
-            <Link to="/app/submit" className="btn-cut px-6 py-2.5 text-xs font-bold uppercase">
+            <LiquidGlassLink to="/app/submit" className="btn-cut px-6 py-2.5 text-xs font-bold uppercase">
               Submit the First Proposal
-            </Link>
+            </LiquidGlassLink>
           </div>
         </div>
       ) : (
@@ -366,7 +369,7 @@ export const CitizenAppFeed: React.FC = () => {
 
                 {/* Card Footer: Vote button + Track arrow */}
                 <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                  <button
+                  <LiquidGlassButton
                     onClick={(e) => handleToggleSupport(item.id, e)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-1.5 border transition-all ${
                       hasSupported
@@ -377,7 +380,7 @@ export const CitizenAppFeed: React.FC = () => {
                   >
                     <ThumbsUp className="w-3.5 h-3.5" />
                     <span>Support ({item.support_count || 1})</span>
-                  </button>
+                  </LiquidGlassButton>
 
                   <span className="text-xs font-mono text-[#E7C226] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                     <span>Track</span>
