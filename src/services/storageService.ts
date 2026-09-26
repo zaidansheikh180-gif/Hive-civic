@@ -2,7 +2,6 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 export interface PhotoUploadResult {
   path?: string;
-  url?: string;
   error?: string;
 }
 
@@ -12,12 +11,13 @@ export interface PhotoUploadResult {
  */
 export const uploadSuggestionPhoto = async (
   file: File,
-  suggestionUuid: string
+  suggestionUuid: string,
+  userId: string
 ): Promise<PhotoUploadResult> => {
   // Validate file format
-  const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+  const validTypes = ['image/jpeg', 'image/png'];
   if (!validTypes.includes(file.type)) {
-    return { error: 'Invalid file format. Please upload JPG, PNG, or WEBP images.' };
+    return { error: 'Invalid file format. Please upload JPG or PNG images.' };
   }
 
   // Validate file size (max 5MB)
@@ -25,9 +25,9 @@ export const uploadSuggestionPhoto = async (
     return { error: 'File size exceeds 5MB limit. Please select a smaller photo.' };
   }
 
-  // Clean filename and structure under suggestion UUID directory
-  const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-  const filePath = `suggestions/${suggestionUuid}/${Date.now()}_${cleanName}`;
+  // Keep ownership and suggestion identity in the object key. The server policy checks both.
+  const suffix = file.type === 'image/png' ? 'png' : 'jpg';
+  const filePath = `${userId}/${suggestionUuid}/${crypto.randomUUID()}.${suffix}`;
 
   if (!isSupabaseConfigured() || !supabase) {
     return { error: 'Supabase storage is not configured.' };
@@ -47,14 +47,7 @@ export const uploadSuggestionPhoto = async (
     }
 
     if (data) {
-      const { data: publicUrlData } = supabase.storage
-        .from('suggestion-photos')
-        .getPublicUrl(data.path);
-
-      return {
-        path: data.path,
-        url: publicUrlData.publicUrl,
-      };
+      return { path: data.path };
     }
 
     return { error: 'Failed to retrieve uploaded image path.' };
