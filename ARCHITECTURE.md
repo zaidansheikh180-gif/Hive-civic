@@ -1,9 +1,9 @@
 # HIVE — Digital Suggestion Box
 ## Canonical Architecture & Project Context
 
-> **Last architecture update:** 24 September 2026
+> **Last architecture update:** 26 September 2026 (instinct branch)
 >
-> This document is the canonical technical context for HIVE. It describes the repository as it actually exists on `main`, the security/architecture decisions that have been made, the problems that were discovered and solved, and the remaining target work. Future LLMs must inspect the code before assuming a `TARGET` item is implemented.
+> This document describes HIVE on the `instinct` working branch, with `main` deliberately unchanged. It records security/architecture decisions, verified behavior and remaining work. Future LLMs must inspect the code before assuming a `TARGET` item is implemented.
 
 ---
 
@@ -11,7 +11,7 @@
 
 **Name:** HIVE — Digital Suggestion Box  
 **Repository:** `zaidansheikh180-gif/Hive-civic`  
-**Branch:** `main`  
+**Working branch:** `instinct` (`main` unchanged)
 **Type:** Full-stack civic-technology academic/research prototype  
 
 HIVE gives citizens a structured way to submit local civic suggestions/issues, receive a human-readable reference number, track progress, and view a transparent status lifecycle. Administrators review and manage submissions.
@@ -198,7 +198,10 @@ Hive-civic/
 ├── supabase/
 │   ├── schema.sql
 │   └── migrations/
-│       └── 001_security_hardening.sql
+│       ├── 001_security_hardening.sql
+│       ├── 002_security_function_privileges.sql
+│       ├── 003_rls_performance_hardening.sql
+│       └── 004_profile_name_only.sql
 └── src/
     ├── App.tsx
     ├── data.ts
@@ -227,6 +230,9 @@ Hive-civic/
     │   ├── AdminDashboard.tsx
     │   ├── AdminLogin.tsx
     │   ├── AdminSuggestions.tsx
+    │   ├── ProfilePage.tsx
+    │   ├── admin-flow.test.tsx
+    │   ├── profile-flow.test.tsx
     │   ├── CitizenAppFeed.tsx
     │   ├── CitizenForgotPassword.tsx
     │   ├── CitizenLogin.tsx
@@ -312,12 +318,14 @@ CITIZEN APP
 /app/track
 /app/suggestions
 /app/suggestions/:id
+/app/profile
 
 ADMIN
 /admin/login
 /admin
 /admin/suggestions
 /admin/suggestions/:id
+/admin/profile
 ```
 
 Legacy aliases remain:
@@ -332,7 +340,7 @@ Legacy aliases remain:
 
 The current code protects `/app`, `/app/submit`, `/app/submitted`, `/app/track`, `/app/suggestions`, and `/app/suggestions/:id` with `ProtectedRoute`.
 
-Admin routes use `ProtectedRoute requireAdmin`.
+Admin routes, including `/admin/profile`, use `ProtectedRoute requireAdmin`. `/app/profile` uses `ProtectedRoute`. Both profile routes render `ProfilePage` with a context-sensitive back link.
 
 Citizen login/register use `PublicOnlyRoute`.
 
@@ -352,7 +360,7 @@ The root route is `WelcomeAbout`.
 - `signOut()` calls Supabase sign-out.
 - `onAuthStateChange()` listens to Supabase Auth events.
 - The authenticated user's profile is loaded from `public.profiles`.
-- Admin access requires `profiles.role = 'admin'`.
+- Admin sign-in requires `profiles.role = 'admin'`; `ProtectedRoute requireAdmin` also accepts `moderator` for guarded routes. A public signup creates a citizen profile and does not assign admin privileges.
 
 ### Critical decision
 
@@ -403,6 +411,18 @@ A user must never be able to turn themselves into an admin by changing:
 - profile form values
 
 Admin authorization is a database concern.
+
+### Admin redirect fix on instinct
+
+`getCurrentAdmin()` intentionally returns `null` because a synchronous browser cache is not an authorization source. Older AdminDashboard, AdminSuggestions and SuggestionDetails components called it and redirected even after successful sign-in. They now rely on async `getCurrentUser()` / `ProtectedRoute requireAdmin` instead. The user retested locally and reported reaching the admin dashboard; deeper admin operations are not yet verified.
+
+### Self-service profile name editing
+
+Both `/admin/profile` and `/app/profile` expose only `full_name` as editable. The email and role are displayed read-only. `authService.updateDisplayName()` validates a nonempty name of at most 80 characters, calls `supabase.auth.getUser()`, updates only `{ full_name }` with `.eq('id', authUser.id)`, selects the resulting profile, and notifies the navbar to refresh. Name changes do not promote an account. The user reports applying the 004 SQL and seeing "Name saved" on the admin profile; persistence on reload and citizen-path save need a live test.
+
+`supabase/migrations/004_profile_name_only.sql` narrows the authenticated database grant to UPDATE(`full_name`) and replaces the prior broad profile UPDATE policy with an own-row policy. In 003, non-admin role changes were already checked against the current role; 004 adds column-level least privilege. Do not assume that a repository migration has run in production: 004 is reported applied by the user; 001–003 live execution and the full RLS matrix remain unverified. The 004 grant intentionally removes app-client edits to other profile fields, including role assignment; database operators retain privileged SQL access outside this authenticated client grant.
+
+The branch declares Vitest, jsdom and React Testing Library as devDependencies and has 7 passing admin/profile unit tests. `bun.lock` is lockfileVersion 1, regenerated and frozen-install tested with Bun 1.3.14 after a newer lockfile failed on the user's machine. Vite appears only under devDependencies. Lint and production build pass. These tests do not replace authenticated end-to-end checks.
 
 ---
 
@@ -1178,8 +1198,8 @@ The following areas still need work even after this security-hardening pass:
 6. The 3D system needs comprehensive visual/performance QA on every route.
 7. Legacy/duplicate page/component concepts should eventually be consolidated.
 8. Public/admin/citizen queries need end-to-end RLS testing with real accounts.
-9. Migration execution on the connected Supabase project must be verified; a committed SQL migration is not proof that the live database has applied it.
-10. Full lint/build/runtime verification must be performed after pulling these changes into AI Studio.
+9. Live execution of migrations 001–003 remains unverified; user reports running 004 but its grants/RLS still need an independent audit.
+10. Lint, build and 7 unit tests pass locally on instinct; authenticated end-to-end and cross-role tests remain.
 
 ---
 
