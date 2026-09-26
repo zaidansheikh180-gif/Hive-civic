@@ -1,3 +1,5 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -163,18 +165,18 @@ export const SubmitSuggestion: React.FC = () => {
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
               {SUGGESTION_CATEGORIES.map((cat) => (
-                <button
+                <LiquidGlassButton
                   type="button"
                   key={cat}
                   onClick={() => setCategory(cat)}
                   className={`p-2.5 rounded-lg text-xs font-mono text-center border transition-all ${
                     category === cat
-                      ? 'bg-[#E7C226]/20 border-[#E7C226] text-[#E7C226] font-bold shadow-[0_0_12px_rgba(231,194,38,0.25)]'
+                      ? 'bg-[#E7C226]/20 border-[#E7C226] text-[#E7C226] font-bold'
                       : 'bg-black/30 border-white/10 text-neutral-400 hover:border-white/20 hover:text-white'
                   }`}
                 >
                   {cat}
-                </button>
+                </LiquidGlassButton>
               ))}
             </div>
           </div>
@@ -246,14 +248,14 @@ export const SubmitSuggestion: React.FC = () => {
                 alt="Upload preview"
                 className="w-full h-48 object-cover"
               />
-              <button
+              <LiquidGlassButton
                 type="button"
                 onClick={handleRemovePhoto}
                 className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 hover:bg-black text-white transition-colors"
                 title="Remove photo"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </LiquidGlassButton>
             </div>
           ) : (
             <label className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-white/15 hover:border-[#E7C226]/50 bg-black/20 hover:bg-black/40 cursor-pointer transition-all">
@@ -368,15 +370,15 @@ export const SubmitSuggestion: React.FC = () => {
             Submission issues an immutable <span className="text-[#E7C226]">DSB-YYYY-XXXXXX</span> tracking reference.
           </div>
 
-          <button
+          <LiquidGlassButton
             type="submit"
             disabled={isSubmitting}
-            className="w-full sm:w-auto btn-cut px-10 py-4 text-sm font-extrabold uppercase tracking-widest flex items-center justify-center gap-2.5 shadow-[0_0_25px_rgba(231,194,38,0.4)] disabled:opacity-50"
+            className="w-full sm:w-auto btn-cut px-10 py-4 text-sm font-extrabold uppercase tracking-widest flex items-center justify-center gap-2.5 disabled:opacity-50"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
-                <span>Recording in Ledger...</span>
+                <OrbNoise width={22} height={22} density={60} speed={28} pointer={{ drag: 0 }} />
+                <span>Saving proposal...</span>
               </span>
             ) : (
               <>
@@ -384,7 +386,7 @@ export const SubmitSuggestion: React.FC = () => {
                 <span>Register Suggestion</span>
               </>
             )}
-          </button>
+          </LiquidGlassButton>
         </div>
       </form>
     </div>
