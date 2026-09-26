@@ -55,6 +55,10 @@ export const SubmitSuggestion: React.FC = () => {
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        setErrorMsg('Choose a JPG or PNG image.');
+        return;
+      }
       if (file.size > 5 * 1024 * 1024) {
         setErrorMsg('Image size exceeds 5MB limit.');
         return;
@@ -238,7 +242,7 @@ export const SubmitSuggestion: React.FC = () => {
             <span>2. Photographic Evidence (Optional)</span>
           </h2>
           <p className="text-xs text-neutral-400">
-            Attach a clear photo of the site, damage, or street condition (JPG, PNG, WEBP &bull; Max 5MB).
+            Attach a clear photo of the site, damage, or street condition (JPG or PNG &bull; Max 5MB).
           </p>
 
           {photoPreview ? (
@@ -268,7 +272,7 @@ export const SubmitSuggestion: React.FC = () => {
               </span>
               <input
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/jpg"
+                accept="image/jpeg,image/png"
                 onChange={handlePhotoSelect}
                 className="hidden"
               />
