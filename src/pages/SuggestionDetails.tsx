@@ -93,8 +93,8 @@ export const SuggestionDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 text-center text-xs font-mono text-[#E7C226] z-10 relative">
-        <OrbNoise width={48} height={48} density={90} pointer={{ drag: 0 }} /><span className="block mt-2">Loading proposal...</span>
+      <div className="min-h-[70vh] pt-24 flex flex-col items-center justify-center gap-3 text-center text-xs font-mono text-[#E7C226] z-10 relative">
+        <OrbNoise width={88} height={88} density={90} pointer={{ drag: 0 }} /><span>Loading proposal...</span>
       </div>
     );
   }
