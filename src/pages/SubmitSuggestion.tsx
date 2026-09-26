@@ -117,7 +117,7 @@ export const SubmitSuggestion: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-8 max-w-4xl mx-auto z-10 select-none">
+    <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-8 max-w-4xl mx-auto z-10">
       {/* Back button */}
       <div className="mb-6">
         <Link
