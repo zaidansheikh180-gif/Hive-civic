@@ -165,8 +165,8 @@ export const AdminSuggestions: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-xs font-mono text-[#E7C226]">
-            <OrbNoise width={48} height={48} density={90} pointer={{ drag: 0 }} /><span className="block mt-2">Loading proposals...</span>
+          <div className="p-12 flex flex-col items-center gap-3 text-center text-xs font-mono text-[#E7C226]">
+            <OrbNoise width={72} height={72} density={90} pointer={{ drag: 0 }} /><span>Loading proposals...</span>
           </div>
         ) : suggestions.length === 0 ? (
           <div className="p-12 text-center text-neutral-400 font-mono text-xs">
