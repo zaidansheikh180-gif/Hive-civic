@@ -44,7 +44,7 @@ export const ProfilePage: React.FC = () => {
     setSaving(false);
   };
 
-  if (loading) return <div className="min-h-[70vh] flex items-center justify-center gap-3 text-[#E7C226] font-mono text-sm"><OrbNoise width={48} height={48} density={90} pointer={{ drag: 0 }} /><span>Loading profile...</span></div>;
+  if (loading) return <div className="min-h-[70vh] flex items-center justify-center gap-3 text-[#E7C226] font-mono text-sm"><OrbNoise width={88} height={88} density={90} pointer={{ drag: 0 }} /><span>Loading profile...</span></div>;
   if (!profile) return <div className="min-h-[70vh] flex items-center justify-center text-neutral-300">Profile unavailable. Please sign in again.</div>;
 
   return (
