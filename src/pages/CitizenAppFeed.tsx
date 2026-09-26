@@ -15,7 +15,6 @@ import {
   SUGGESTION_STATUSES,
 } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
-import { SchemaModal } from '../components/SchemaModal';
 import {
   Plus,
   Search,
@@ -38,7 +37,6 @@ export const CitizenAppFeed: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [schemaMissing, setSchemaMissing] = useState(false);
-  const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -156,16 +154,11 @@ export const CitizenAppFeed: React.FC = () => {
               <div>
                 <strong className="text-white">This preview is not connected yet.</strong>
                 <p className="text-neutral-300 mt-0.5">
-                  The proposal feed needs database setup. Project owners can inspect the setup details below.
+                  The proposal feed needs database setup. Project owners should review
+                  {' '}<code>supabase/migrations</code> and <code>ARCHITECTURE.md</code> in the repository.
                 </p>
               </div>
             </div>
-            <LiquidGlassButton
-              onClick={() => setIsSchemaModalOpen(true)}
-              className="btn-cut px-4 py-2 text-xs font-bold uppercase tracking-wider flex-shrink-0"
-            >
-              View setup details
-            </LiquidGlassButton>
           </div>
         )}
 
@@ -392,12 +385,6 @@ export const CitizenAppFeed: React.FC = () => {
           })}
         </div>
       )}
-
-      {/* Schema Modal */}
-      <SchemaModal
-        isOpen={isSchemaModalOpen}
-        onClose={() => setIsSchemaModalOpen(false)}
-      />
     </div>
   );
 };
