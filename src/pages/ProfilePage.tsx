@@ -1,3 +1,5 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CheckCircle2, ShieldCheck, UserRound, AlertCircle, ArrowLeft } from 'lucide-react';
@@ -42,7 +44,7 @@ export const ProfilePage: React.FC = () => {
     setSaving(false);
   };
 
-  if (loading) return <div className="min-h-[70vh] flex items-center justify-center text-[#E7C226] font-mono text-sm">Loading profile...</div>;
+  if (loading) return <div className="min-h-[70vh] flex items-center justify-center gap-3 text-[#E7C226] font-mono text-sm"><OrbNoise width={48} height={48} density={90} pointer={{ drag: 0 }} /><span>Loading profile...</span></div>;
   if (!profile) return <div className="min-h-[70vh] flex items-center justify-center text-neutral-300">Profile unavailable. Please sign in again.</div>;
 
   return (
@@ -76,10 +78,10 @@ export const ProfilePage: React.FC = () => {
           <p className="text-xs text-neutral-500">Email and account role can't be changed here.</p>
           {error && <p role="alert" className="flex gap-2 text-red-300 text-sm"><AlertCircle className="w-4 h-4 shrink-0" />{error}</p>}
           {saved && <p role="status" className="flex gap-2 text-emerald-300 text-sm"><CheckCircle2 className="w-4 h-4 shrink-0" />Name saved.</p>}
-          <button type="submit" disabled={saving || !name.trim() || name.trim() === profile.full_name}
+          <LiquidGlassButton type="submit" disabled={saving || !name.trim() || name.trim() === profile.full_name}
             className="btn-cut px-7 py-3 text-xs font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed">
             {saving ? 'Saving...' : 'Save name'}
-          </button>
+          </LiquidGlassButton>
         </form>
       </div>
     </div>
