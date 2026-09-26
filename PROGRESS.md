@@ -1,7 +1,7 @@
 # HIVE Civic — Project Progress
 
 > **Last updated:** 26 September 2026 (instinct branch)
-> **Current phase:** UI passes published on `instinct`; live Supabase migration/security and real-device QA still pending. Not yet cleared for deployment.
+> **Current phase:** UI passes published on `instinct`; migration 005 applied by the user and one citizen photo submission reported working. Cross-role/security matrix and real-device QA still pending. Not yet cleared for deployment.
 
 ## 1. Current Status
 
@@ -9,7 +9,7 @@ HIVE is a functional civic suggestion-platform prototype with a React/TypeScript
 
 The project has moved beyond the initial prototype architecture. The current priority is to verify the existing security and data flow while improving the visual system in scoped, reviewable passes.
 
-**Important:** The user reports running the SQL for `004_profile_name_only.sql` in Supabase and receiving "Name saved" after an admin profile edit. This verifies that one save path by user report, not an independent database audit. The live application and test matrix for 001–003 remain unverified; do not infer them from the 004 report.
+**Important:** On 26 September the user shared read-only SQL Editor results showing live migration history and current RLS/grants. Migrations corresponding to repository 001–003 are present under Supabase history names, and the 004 name-only grant/policy was observed after manual SQL Editor application. Later that night the user ran 005 manually and reported a working citizen photo submission. The 005 result and full cross-role behavior were not independently read back or tested by us; do not turn the user report into a completed security matrix.
 
 ---
 
@@ -145,7 +145,7 @@ The project has moved beyond the initial prototype architecture. The current pri
 ## RLS hardening migration
 
 - [x] Added migrations `002_security_function_privileges.sql`, `003_rls_performance_hardening.sql`, and `004_profile_name_only.sql` in the repository. Migration 004 grants authenticated clients UPDATE on `full_name` only and restricts updates to their own profile row. The prior 003 policy checks that a citizen cannot change their existing role; do not claim a demonstrated self-promotion flaw.
-- [x] User reports running the 004 SQL in live Supabase and seeing "Name saved" on the admin profile. Independent grant/RLS audit and 001–003 live status still pending.
+- [x] User reports running the 004 SQL in live Supabase and seeing "Name saved" on the admin profile. A 26 September read-only SQL Editor audit later showed the name-only column grants and own-row policy, plus live history corresponding to repository 001–003.
 
 - [x] Added `supabase/migrations/001_security_hardening.sql`
 - [x] Removed broad public base-table suggestion read policy
@@ -294,8 +294,8 @@ This milestone does not mark the remaining admin, cross-role, RLS, storage, supp
 - [x] Verify real PostgreSQL UUID — implementation verified; deeper DB audit remains pending
 - [x] Verify DSB reference ID — verified in submission flow
 - [ ] Verify initial status history
-- [ ] Upload a photo
-- [ ] Verify photo association
+- [x] Upload a photo - user reported a successful citizen test on `instinct` after manually running 005
+- [x] Verify photo association in the test flow - user said the photo worked; independent cross-account verification is still pending
 - [x] Verify My Suggestions — verified in AI Studio
 - [x] Verify citizen details — verified in AI Studio
 - [ ] Verify citizen cannot access another citizen's private suggestion
@@ -396,17 +396,17 @@ Do not replace the existing 3D architecture with generic decorative backgrounds.
 
 # 8B. Read-only code audit: open deployment risks, not proof of live exposure
 
-The following are code/documentation findings. No live Supabase permissions, bucket settings, or migration history were inspected for this audit. **Do not deploy publicly until those checks and the cross-role tests pass.**
+The following were code/documentation findings at the time of this earlier audit. A later 26 September read-only SQL Editor audit checked the live migration history, RLS, grants and bucket state, followed by a user-reported 005 application and photo test. **Do not deploy publicly until the remaining cross-role and device tests pass.**
 
-- [ ] Verify the actual live grants for legacy `increment_support` / `decrement_support`. Baseline schema and 001 grant authenticated execution, but **002 revokes it from authenticated and anon**. The earlier claim that the functions remain callable after the complete migration sequence was wrong; a risk exists only if 002 was not applied or grants later changed.
-- [ ] Check the public `suggestion-photos` bucket's live MIME/size limits and upload policy. Repository `schema.sql` upload policy checks only `bucket_id`; `storageService.ts` checks MIME/5 MB in the client, which is bypassable outside that client. Verify appropriate server-side limits and object-path rules.
-- [ ] Remove or replace the admin login's copyable `SchemaModal.tsx` baseline SQL, which predates migrations 001–004. Do not use it alone to initialize a deployment.
+- [x] Verify the actual live grants for legacy `increment_support` / `decrement_support` (read-only SQL Editor result on 26 September showed no anon/authenticated EXECUTE). Baseline schema and 001 grant authenticated execution, but **002 revokes it from authenticated and anon**. The earlier claim that the functions remain callable after the complete migration sequence was wrong; a risk exists only if 002 was not applied or grants later changed.
+- [x] Check the public `suggestion-photos` bucket's live MIME/size limits and upload policy (read-only SQL Editor result before 005: public, no size/MIME limits, broad bucket-only INSERT; user later ran 005 and tested one photo). Historical `schema.sql` still has the old bucket-only policy. Read back 005 server-side limits and owner-bound policy; the local client test alone does not prove rejection paths.
+- [x] Remove or replace the admin login's copyable `SchemaModal.tsx` baseline SQL, which predates migrations 001–004. Do not use it alone to initialize a deployment.
 - [ ] Decide whether `admin_notes` are meant to be visible to the submitting citizen; `CitizenSuggestionDetails.tsx` renders them. Public projections omit them.
-- [ ] Pin or eliminate the `motion@latest` CDN script in `index.html` after checking its usage; bundled `motion` is also installed. Split/profile the ~2.13 MB initial JS chunk.
+- [x] Pin or eliminate the `motion@latest` CDN script in `index.html` after checking its usage; bundled `motion` is also installed. The large JS chunk still needs profiling.
 - [ ] Resolve `moderator` references left in frontend/baseline SQL against migration 001's `citizen | admin` role constraint.
 - [ ] Audit and remove unused packages only after dependency checks (`@google/genai`, `express`, `dotenv`, `@types/express`). Add a LICENSE file if MIT is indeed the intended license; footer currently claims MIT without one.
 - [ ] Review registration's six-character minimum and verify the actual Supabase Auth password policy. Consider signup abuse controls in the deployment configuration.
-- [ ] Audit live migration 001–003 status and independently confirm reported 004 effects, then test RLS, function grants, storage and all cross-role flows with real accounts.
+- [ ] Complete the real-account RLS, function, storage and cross-role matrix. The 26 September read-only SQL Editor audit confirmed migration history and current policy/grant definitions; it did not simulate every role.
 
 ---
 
@@ -442,7 +442,7 @@ The following are code/documentation findings. No live Supabase permissions, buc
 # 11. Current Recommended Sequence
 
 1. Keep all work on `instinct`; preserve `main` until a reviewed merge.
-2. Check the live state of migrations 001–003 and confirm the reported 004 application without blindly replaying SQL; inspect legacy function grants and bucket settings, then run the missing RLS/security matrix with real accounts.
+2. Use the 26 September SQL Editor audit as the current migration/grant baseline; do not rerun 001–005. Verify 005 state by readback and finish the missing RLS/security matrix with real accounts.
 3. Verify admin profile name persists on reload, then citizen name save and persistence; check non-admin rejection and admin status operations separately.
 4. Verify recent honey/dark UX fixes on the deployed site and real devices; continue route-aware 3D polish in reviewable commits with reduced-motion coverage, tests, lint and build.
 5. Resolve the code-audit checklist and reconcile baseline schema/migrations, then prepare project documentation and demonstration.
@@ -484,7 +484,7 @@ HIVE is complete only when:
 
 ### P0 — Do now
 
-1. Verify live migration state (001–003 unknown; 004 reported run by user).
+1. Verify 005 by readback and finish the real-account RLS/storage matrix (001–003 history and 004 grants were inspected on 26 September; 005 application/photo test was user-reported).
 2. Run the remaining RLS/auth matrix with real accounts.
 3. Verify persisted admin/citizen profile names and role isolation.
 4. Keep lint/build/tests green while polishing the instinct branch.
@@ -536,4 +536,4 @@ All three states matter.
 - Implemented in repository: added `005_suggestion_photo_limits.sql` with server-side 5 MiB/JPEG/PNG bucket limits, owner/suggestion-bound upload keys, and an ownership/object-checked, path-only attachment RPC. The client now uploads under `<user UUID>/<suggestion UUID>/<random UUID>.<extension>` and derives public display URLs from paths, while retaining legacy stored URLs on old records.
 - Removed the copyable outdated schema modal entry points from admin login and the citizen feed. The feed notice now points project owners to `supabase/migrations` and `ARCHITECTURE.md`. The obsolete unpinned Motion CDN script was removed; current routed pages do not use the legacy LandingPage component and the cursor has a CSS fallback.
 - Admin dashboard now distinguishes loading, empty and failure states, and shows category and status counts as readable text and bars rather than relying on angled labels, color, or hover tooltips.
-- **Migration 005 is unapplied.** A read-only live audit on 26 September found migration 001 and security-function privileges applied, with the ACL/path hardening and RLS performance changes reflected by repository files 002 and 003; migration 004 was run manually and its column grants/policy observed. The live photo bucket has no size/MIME limits, and its insert policy is bucket-only. Coordinate the matching client release and SQL application only after reading the live checks and testing with real citizen/admin accounts; uploading photos against a mixed old/new deployment may fail. The appended public view field exposes the uploader UUID in new photo keys; the bucket is public. The baseline `schema.sql` is still historical and needs separate reconciliation.
+- **Migration 005 was applied manually in the SQL Editor on 26 September by user report; one citizen photo submission worked by user report.** A read-only live audit on 26 September found migration 001 and security-function privileges applied, with the ACL/path hardening and RLS performance changes reflected by repository files 002 and 003; migration 004 was run manually and its column grants/policy observed. Before 005, the live photo bucket had no size/MIME limits and its insert policy was bucket-only. The post-005 limits and policy have not been independently read back. `instinct` contains the matching client and the user tested a citizen upload locally; the older `main`/AI Studio client may fail photo uploads against the changed shared project. Do not rerun 005 blindly. The appended public view field exposes the uploader UUID in new photo keys; the bucket is public. The baseline `schema.sql` is still historical and needs separate reconciliation.
