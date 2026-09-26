@@ -1,3 +1,4 @@
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -54,15 +55,15 @@ export const Home: React.FC = () => {
 
           {/* Action CTAs */}
           <div className="flex flex-wrap items-center gap-4 pt-4">
-            <Link
+            <LiquidGlassLink
               to="/submit"
               className="btn-cut px-7 py-3.5 text-sm sm:text-base font-extrabold uppercase tracking-wider flex items-center gap-2.5 shadow-[0_0_25px_rgba(231,194,38,0.4)]"
             >
               <Send className="w-4 h-4" />
               <span>Submit a Suggestion</span>
-            </Link>
+            </LiquidGlassLink>
 
-            <Link
+            <LiquidGlassLink
               to="/track"
               className="btn-cut-border px-6 py-3.5 text-sm font-semibold uppercase tracking-wider flex items-center gap-2"
             >
@@ -70,7 +71,7 @@ export const Home: React.FC = () => {
                 <Search className="w-4 h-4" />
                 <span>Track a Suggestion</span>
               </span>
-            </Link>
+            </LiquidGlassLink>
           </div>
 
           {/* Key Metrics Strip */}
