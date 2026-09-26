@@ -1,3 +1,5 @@
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
@@ -51,7 +53,7 @@ export const SubmissionSuccess: React.FC = () => {
           {refId}
         </div>
 
-        <button
+        <LiquidGlassButton
           onClick={handleCopy}
           className="w-full py-2.5 px-4 rounded-lg bg-white/10 hover:bg-[#E7C226]/20 border border-white/15 hover:border-[#E7C226] text-white text-xs font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
         >
@@ -66,34 +68,34 @@ export const SubmissionSuccess: React.FC = () => {
               <span>Copy Reference Identifier</span>
             </>
           )}
-        </button>
+        </LiquidGlassButton>
       </div>
 
       {/* Action Next Steps */}
       <div className="flex flex-wrap items-center justify-center gap-4 animate-fadeUp delay-300">
-        <Link
+        <LiquidGlassLink
           to={`/app/track?ref=${encodeURIComponent(refId)}`}
           className="btn-cut px-6 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(231,194,38,0.3)]"
         >
           <Search className="w-4 h-4" />
           <span>Track Status Now</span>
-        </Link>
+        </LiquidGlassLink>
 
-        <Link
+        <LiquidGlassLink
           to="/app/suggestions"
           className="btn-cut-border px-5 py-3 text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
         >
           <FolderHeart className="w-4 h-4 text-[#E7C226]" />
           <span>View My Suggestions</span>
-        </Link>
+        </LiquidGlassLink>
 
-        <Link
+        <LiquidGlassLink
           to="/app/submit"
           className="btn-cut-border px-5 py-3 text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           <span>Submit Another</span>
-        </Link>
+        </LiquidGlassLink>
 
         <Link
           to="/app"
