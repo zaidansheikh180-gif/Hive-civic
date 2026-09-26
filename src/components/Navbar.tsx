@@ -102,7 +102,7 @@ export const Navbar: React.FC = () => {
           <polygon points="12,6 18,10 18,16 12,20 6,16 6,10" fill="#E7C226" />
         </svg>
         <div className="flex flex-col">
-          <span className="text-lg sm:text-xl font-black tracking-[0.2em] sm:tracking-[0.3em] uppercase text-white group-hover:text-[#E7C226] transition-colors leading-none">
+          <span className={`${isAdminArea ? "text-[15px] tracking-[0.08em]" : "text-lg tracking-[0.2em]"} sm:text-xl sm:tracking-[0.3em] font-black uppercase text-white group-hover:text-[#E7C226] transition-colors leading-none whitespace-nowrap`}>
             {isAdminArea ? 'HIVE ADMIN' : 'HIVE'}
           </span>
           <span className="hidden sm:block text-[9px] font-mono tracking-widest text-[#CC9E33]/70 uppercase pt-0.5">
@@ -112,7 +112,7 @@ export const Navbar: React.FC = () => {
       </Link>
 
       {/* Center Navigation Links (Desktop) */}
-      <div className="hidden md:flex items-center gap-1.5 px-3 py-1 text-xs font-semibold tracking-wider uppercase">
+      <div className="hidden md:flex items-center gap-1 px-2 py-1 text-[11px] xl:text-xs font-semibold tracking-wide uppercase whitespace-nowrap">
         {navLinks.map((link) => {
           const isActive =
             link.path === '/'
@@ -124,7 +124,7 @@ export const Navbar: React.FC = () => {
             <Link
               key={link.path}
               to={link.path}
-              className={`px-3.5 py-1.5 rounded-lg transition-all ${
+              className={`px-2.5 py-1.5 rounded-lg transition-all whitespace-nowrap ${
                 isActive
                   ? 'text-[#E7C226] bg-[#E7C226]/10 shadow-[0_0_12px_rgba(231,194,38,0.25)] font-bold'
                   : 'text-[#CC9E33]/70 hover:text-[#CC9E33] hover:bg-white/5'
@@ -137,7 +137,7 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Right Nav Action Buttons */}
-      <div className="flex items-center space-x-2.5 sm:space-x-4 min-w-0">
+      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
         {/* Supabase Status Pill */}
         <div
           className={`hidden lg:flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-full border ${
