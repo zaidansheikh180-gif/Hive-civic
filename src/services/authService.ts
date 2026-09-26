@@ -96,6 +96,33 @@ export const authService = {
     }
   },
 
+  /** Update only the signed-in user's display name; role and email are never writable here. */
+  async updateDisplayName(name: string): Promise<AuthResponse> {
+    const fullName = name.trim().replace(/\s+/g, ' ');
+    if (!fullName || fullName.length > 80) {
+      return { user: null, error: 'Name must be between 1 and 80 characters.' };
+    }
+    if (!isSupabaseConfigured() || !supabase) {
+      return { user: null, error: 'Supabase credentials are not configured.' };
+    }
+    try {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) return { user: null, error: 'Please sign in again.' };
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName })
+        .eq('id', authUser.id)
+        .select('id, email, full_name, role, created_at, updated_at')
+        .single();
+      if (error || !data) return { user: null, error: error?.message || 'Could not update your name.' };
+      const updated = profileFromRow(data, authUser);
+      window.dispatchEvent(new CustomEvent('hive:profile-updated', { detail: updated }));
+      return { user: updated };
+    } catch (err: any) {
+      return { user: null, error: formatAuthError(err) };
+    }
+  },
+
   async adminSignIn(email: string, password: string): Promise<AuthResponse> {
     const result = await this.signIn(email, password);
     if (result.error || !result.user) return result;
