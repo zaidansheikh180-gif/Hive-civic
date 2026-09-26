@@ -1,3 +1,5 @@
+import { LiquidGlassLink } from './ui/LiquidGlassButton';
+import { LiquidGlassButton } from './ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isSupabaseConfigured } from '../services/supabaseClient';
@@ -84,7 +86,7 @@ export const Navbar: React.FC = () => {
       {/* Logo: Hexagon polygon SVG + HIVE */}
       <Link
         to={currentUser ? (isAdminArea ? '/admin' : '/app') : '/'}
-        className="flex items-center space-x-3 group focus:outline-none"
+        className="flex items-center space-x-2 sm:space-x-3 group focus:outline-none shrink-0"
         title="Return to HIVE Home"
         id="hive-logo-btn"
       >
@@ -100,10 +102,10 @@ export const Navbar: React.FC = () => {
           <polygon points="12,6 18,10 18,16 12,20 6,16 6,10" fill="#E7C226" />
         </svg>
         <div className="flex flex-col">
-          <span className="text-xl font-black tracking-[0.3em] uppercase text-white group-hover:text-[#E7C226] transition-colors leading-none">
+          <span className="text-lg sm:text-xl font-black tracking-[0.2em] sm:tracking-[0.3em] uppercase text-white group-hover:text-[#E7C226] transition-colors leading-none">
             {isAdminArea ? 'HIVE ADMIN' : 'HIVE'}
           </span>
-          <span className="text-[9px] font-mono tracking-widest text-[#CC9E33]/70 uppercase pt-0.5">
+          <span className="hidden sm:block text-[9px] font-mono tracking-widest text-[#CC9E33]/70 uppercase pt-0.5">
             Civic suggestion box
           </span>
         </div>
@@ -135,7 +137,7 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Right Nav Action Buttons */}
-      <div className="flex items-center space-x-2.5 sm:space-x-4">
+      <div className="flex items-center space-x-2.5 sm:space-x-4 min-w-0">
         {/* Supabase Status Pill */}
         <div
           className={`hidden lg:flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-1 rounded-full border ${
@@ -160,7 +162,7 @@ export const Navbar: React.FC = () => {
         {/* Authenticated User state */}
         {currentUser ? (
           <div className="flex items-center gap-2">
-            <Link
+            <LiquidGlassLink
               to={currentUser.role === 'admin' ? '/admin/profile' : '/app/profile'}
               className="btn-cut-border px-3 py-1.5 text-xs font-mono hidden sm:inline-flex items-center gap-1.5"
               title={`Authenticated as ${currentUser.full_name} (${currentUser.role})`}
@@ -174,26 +176,26 @@ export const Navbar: React.FC = () => {
               <span className="text-[10px] text-[#E7C226] font-bold uppercase">
                 [{currentUser.role}]
               </span>
-            </Link>
+            </LiquidGlassLink>
 
-            <button
+            <LiquidGlassButton
               onClick={handleSignOut}
               className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-red-500/40 text-neutral-400 hover:text-red-300 transition-colors"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
-            </button>
+            </LiquidGlassButton>
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <Link
+            <LiquidGlassLink
               to="/auth/login"
-              className="btn-cut-border px-3.5 py-1.5 text-xs font-mono hidden sm:inline-flex items-center gap-1.5"
+              className="btn-cut-border px-3.5 py-1.5 text-xs font-mono hidden md:inline-flex items-center gap-1.5"
               id="nav-citizen-login-btn"
             >
               <LogIn className="w-3.5 h-3.5 text-[#E7C226]" />
               <span>Citizen Sign In</span>
-            </Link>
+            </LiquidGlassLink>
 
             <Link
               to="/admin/login"
@@ -206,14 +208,14 @@ export const Navbar: React.FC = () => {
         )}
 
         {/* Primary CTA button */}
-        <Link
+        <LiquidGlassLink
           to="/app/submit"
           id="nav-submit-btn"
-          className="btn-cut px-4 sm:px-5 py-2 text-xs sm:text-xs shadow-[0_0_15px_rgba(231,194,38,0.3)] flex items-center gap-1.5"
+          className="btn-cut px-3 sm:px-5 py-2 text-xs flex items-center gap-1.5 shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Submit</span>
-        </Link>
+        </LiquidGlassLink>
       </div>
     </nav>
   );
