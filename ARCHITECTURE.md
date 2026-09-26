@@ -15,18 +15,18 @@ This file is the architecture and implementation map, not a substitute for check
 | --- | --- |
 | Purpose and user journey | Sections 1–3; current route map in section 7 |
 | Stack and environment | Sections 4–6 and `package.json`, `vite.config.ts`, `.env.example` |
-| Auth, roles, database, RLS, storage | Sections 8–22; `supabase/schema.sql` followed by migrations 001–004 |
+| Auth, roles, database, RLS, storage | Sections 8–22; `supabase/schema.sql` followed by migrations 001–005 |
 | 3D, home, styling, shared controls | Sections 23–27, 38B; `src/App.tsx`, `src/index.css`, `src/components/ui/` |
 | Citizen/admin implementation | Sections 28–31 and their `src/pages/` components |
 | Tests, status, blockers and deployment risks | Sections 32, 35–38C; `PROGRESS.md` sections 5–9 and 11–13 |
 
-**Run locally on the user's Windows VS Code checkout:** `git fetch origin`, `git checkout instinct`, `git pull origin instinct`, `bun install`, `bun dev` (Vite serves port 3000 per `package.json`). Inspect `git status` before switching or pulling; do not discard local edits merely because a lockfile changed. The project lockfile is Bun 1.3.14-compatible `lockfileVersion: 1`. Configure only public Supabase URL and publishable/anon key using `.env.example`; no service-role key in client env. For checks, run `bun run lint`, `bun run build`, and `bunx vitest run src/pages/admin-flow.test.tsx src/pages/profile-flow.test.tsx`. The last local check had 7/7 tests, lint and build passing, but the bundle warned at ~2.13 MB JS (~594 KB gzip). Re-run checks on the current checkout instead of relying on that older result.
+**Run locally on the user's Windows VS Code checkout:** `git fetch origin`, `git checkout instinct`, `git pull origin instinct`, `bun install`, `bun dev` (Vite serves port 3000 per `package.json`). Inspect `git status` before switching or pulling; do not discard local edits merely because a lockfile changed. The project lockfile is Bun 1.3.14-compatible `lockfileVersion: 1`. Configure only public Supabase URL and publishable/anon key using `.env.example`; no service-role key in client env. For checks, run `bun run lint`, `bun run build`, and `bunx vitest run src/pages/admin-flow.test.tsx src/pages/profile-flow.test.tsx src/pages/admin-dashboard-states.test.tsx`. The last local check had 9/9 tests, lint and build passing, but Vite still warned about a large JS chunk (~1.73 MB, ~477 KB gzip). Re-run checks on the current checkout instead of relying on that older result.
 
 **How it fits:** `src/App.tsx` holds the global video, route-aware `SceneCanvas`, cursor, navbar, and React Router. `/` renders `WelcomeAbout`, not the legacy `Home` or `LandingPage`; `/auth/*` is public auth; `/app/*` requires an authenticated session; `/admin/*` requires an admin profile. `authService`, `suggestionService`, and `storageService` own integration logic. Supabase Auth identifies the user. The hardened `profiles` constraint allows `citizen`/`admin`; database RLS, functions and grants enforce data access. Suggestion UUID is the internal identity; DSB reference is the citizen-facing identifier. A public projection omits private contact and notes, while an owner/admin may read fuller records subject to live RLS. Profile self-service updates `full_name` only under repository migration 004.
 
 **Visual language:** preserve honey `#E7C226` and deep `#0B0B0F`, route-aware 3D plus background video, native glass controls in `src/components/ui/LiquidGlassButton.tsx`, and honey particle loading in `src/components/ui/OrbNoise.tsx`. Keep keyboard, focus, disabled and reduced-motion behavior. Round 1 simplified the public hero; round 2 added the glass/orb system and lower-page/sign-in revisions; round 3 repaired mobile responsive display, safe areas and input zoom. Feed and Track Search controls received later sizing/contrast fixes. Dither Reveal and daisyUI were considered and not added.
 
-**Do not blur evidence:** 001–003 application to the live Supabase project remains unverified; the user reported running 004 and saving an admin name, not a full migration audit. Migration 002 revokes the legacy counter RPCs in repository SQL; their live grants are unknown. Read the specific caveats and deployment blockers in `PROGRESS.md` before calling this ready. Changes requested on `instinct` do not imply permission to merge `main` or mutate live Supabase; obtain the owner's current approval for those actions.
+**Do not blur evidence:** A 26 September read-only SQL Editor audit showed recorded migrations corresponding to 001–003 and live no-execute grants for legacy support RPCs; 004 was run manually and its name-only grants/policy appeared live. The user later ran 005 manually and reported a successful citizen photo upload, but we have not independently read back its post-run policy/bucket state or completed the cross-role matrix. Read the specific caveats and deployment blockers in `PROGRESS.md` before calling this ready. Changes requested on `instinct` do not imply permission to merge `main` or mutate live Supabase; obtain the owner's current approval for those actions.
 
 ---
 
@@ -435,7 +435,7 @@ Admin authorization is a database concern.
 
 Both `/admin/profile` and `/app/profile` render `ProfilePage` and expose only `full_name` as editable. The email and role are displayed read-only. `authService.updateDisplayName()` validates a nonempty name of at most 80 characters, calls `supabase.auth.getUser()`, updates only `{ full_name }` with `.eq('id', authUser.id)`, selects the resulting profile, and notifies the navbar to refresh. Name changes do not promote an account. The user reports applying the 004 SQL and seeing "Name saved" on the admin profile; persistence on reload and citizen-path save need a live test.
 
-`supabase/migrations/004_profile_name_only.sql` narrows the authenticated database grant to UPDATE(`full_name`) and replaces the prior broad profile UPDATE policy with an own-row policy. In 003, non-admin role changes were already checked against the current role; 004 adds column-level least privilege. Do not assume that a repository migration has run in production: 004 is reported applied by the user; 001–003 live execution and the full RLS matrix remain unverified. The 004 grant intentionally removes app-client edits to other profile fields, including role assignment; database operators retain privileged SQL access outside this authenticated client grant.
+`supabase/migrations/004_profile_name_only.sql` narrows the authenticated database grant to UPDATE(`full_name`) and replaces the prior broad profile UPDATE policy with an own-row policy. In 003, non-admin role changes were already checked against the current role; 004 adds column-level least privilege. The 26 September read-only SQL Editor audit found the name-only column grants and own-row policy live, plus migration history corresponding to 001–003. This does not complete the real-account RLS matrix. The 004 grant intentionally removes app-client edits to other profile fields, including role assignment; database operators retain privileged SQL access outside this authenticated client grant.
 
 The branch declares Vitest, jsdom and React Testing Library as devDependencies and has 7 passing admin/profile unit tests at the latest local check. `bun.lock` is lockfileVersion 1, regenerated and frozen-install tested with Bun 1.3.14 after a newer lockfile failed on the user's machine. Vite appears only under devDependencies. Lint and production build pass. These tests do not replace authenticated end-to-end checks.
 
@@ -761,7 +761,7 @@ suggestion-photos
 Preferred path:
 
 ```text
-suggestions/{suggestion UUID}/{timestamp}_{filename}
+{user UUID}/{suggestion UUID}/{random UUID}.{jpg|png}
 ```
 
 Current service flow:
@@ -771,13 +771,13 @@ Create suggestion
       ↓
 Receive real UUID
       ↓
-Upload photo under UUID path
+Upload JPEG/PNG (at most 5 MiB) under owner/suggestion UUID path
       ↓
-Call attach_suggestion_photo RPC
+Call path-only attach_suggestion_photo RPC
       ↓
 RPC verifies ownership/status
       ↓
-Store photo_path + photo_url
+Store verified photo_path, derive public URL client-side
 ```
 
 The reason for the RPC is important: ordinary citizen UPDATE permission is intentionally restricted so a citizen cannot arbitrarily edit protected suggestion fields merely because they own the row.
@@ -1221,7 +1221,7 @@ The following areas still need work even after this security-hardening pass:
 6. The 3D system needs comprehensive visual/performance QA on every route.
 7. Legacy/duplicate page/component concepts should eventually be consolidated.
 8. Public/admin/citizen queries need end-to-end RLS testing with real accounts.
-9. Live execution of migrations 001–003 remains unverified; user reports running 004 but its grants/RLS still need an independent audit. The legacy support RPCs are revoked in repository migration 002, so their live exposure depends on actual migration state.
+9. The 26 September read-only audit found migration history corresponding to 001–003, 004 name-only grants/policy, and no anon/authenticated EXECUTE on legacy support RPCs. The user later applied 005 manually and reported a working citizen photo upload; the post-005 policy/bucket state and full role matrix still need independent readback/testing.
 10. Lint, build and 7 unit tests pass locally on instinct; authenticated end-to-end and cross-role tests remain.
 
 ---
@@ -1498,13 +1498,13 @@ Round 2 visual QA fixed the citizen feed's clipped filter chips, one-line deskto
 
 ## 38C. Repository audit findings that need deployment checks
 
-- `schema.sql` storage upload policy checks only `bucket_id`; `storageService.ts` applies client-side size/MIME checks. Confirm live bucket limits and policy path restrictions before production. No live storage configuration was inspected in this code audit.
-- `SchemaModal.tsx` still embeds a copyable pre-hardening SQL baseline and is reachable from the admin login page. Do not present this as a safe one-step deployment script.
+- Historical `schema.sql` still shows the broad upload policy. A 26 September pre-005 live audit found that policy and no bucket limits; the user then ran 005 and reported a working citizen photo test. Read back the post-005 live state and test rejection/cross-account cases before production.
+- `SchemaModal.tsx` still contains the old baseline SQL source, but its admin-login and feed entry points were removed. Do not present that old SQL as a safe one-step deployment script.
 - Citizen-owned detail queries return `admin_notes` and the citizen details page renders them. Treat notes as citizen-visible until a product/privacy decision changes this. The public projection excludes them.
-- `index.html` loads `motion@latest` from a CDN without pinning, alongside bundled motion. The production JS still builds as a ~2.13 MB single chunk (~594 KB gzip).
+- The unpinned `motion@latest` CDN script was removed. The production JS still has a large-chunk warning; check current build output rather than relying on older figures.
 - Baseline schema and frontend still mention `moderator`, while migration 001 limits roles to `citizen | admin`. Registration UI requires six characters; actual Supabase password policy is not verified.
 - Package metadata contains likely unused `@google/genai`, `express`, `dotenv`, and `@types/express`; do an import/dependency check before removing. The footer says MIT but the branch has no LICENSE file.
-- The migration order 001 through 004 and live grants/RLS/bucket settings need a read-only audit. Migration 002 does revoke legacy counter RPCs; whether that protection is live is unknown.
+- A 26 September read-only audit found migration history corresponding to 001–003, manual 004 grants/policy, and blocked legacy counter RPC execution. User-reported 005 application and photo test need post-run readback and cross-role testing.
 
 ## 39. One-Page Mental Model
 
@@ -1562,8 +1562,8 @@ Round 2 visual QA fixed the citizen feed's clipped filter chips, one-line deskto
 
 > **A beautiful 3D interface is valuable only if the civic workflow underneath it is correct, secure, and usable.**
 
-### Scoped photo upload change proposed on `instinct` (26 September 2026)
+### Scoped photo upload hardening on `instinct` (26 September 2026)
 
-`supabase/migrations/005_suggestion_photo_limits.sql` is an unapplied follow-on to the historical schema and migrations 001-004. It changes the public `suggestion-photos` bucket to enforce 5 MiB and a JPEG/PNG MIME allowlist, replaces the broad authenticated insert policy with a key scoped to the authenticated user and a submitted suggestion they own, and replaces `attach_suggestion_photo(uuid,text,text)` with the path-only `attach_suggestion_photo(uuid,text)`. The RPC checks the storage object's owner, exact bucket/key, and suggestion ownership/status. It writes the verified path and null URL; the client builds the public display URL from that path. Old records with a URL but no new key remain readable as before. The bucket remains public, so these policies do not make its photos private. Migration 005 appends `photo_path` to the public view, exposing the uploader UUID embedded in each new object key; avoid treating it as a private identifier. A read-only live audit on 26 September found the expected broad storage policy, unrestricted public bucket, old three-argument RPC, and hardened public view. Deploy migration 005 with the matching client and test photo submissions with real accounts before relying on them; no repository commit proves a database migration ran.
+`supabase/migrations/005_suggestion_photo_limits.sql` is a follow-on to the historical schema and migrations 001-004, manually applied to live Supabase by the user on 26 September. It changes the public `suggestion-photos` bucket to enforce 5 MiB and a JPEG/PNG MIME allowlist, replaces the broad authenticated insert policy with a key scoped to the authenticated user and a submitted suggestion they own, and replaces `attach_suggestion_photo(uuid,text,text)` with the path-only `attach_suggestion_photo(uuid,text)`. The RPC checks the storage object's owner, exact bucket/key, and suggestion ownership/status. It writes the verified path and null URL; the client builds the public display URL from that path. Old records with a URL but no new key remain readable as before. The bucket remains public, so these policies do not make its photos private. Migration 005 appends `photo_path` to the public view, exposing the uploader UUID embedded in each new object key; avoid treating it as a private identifier. A read-only live audit on 26 September found the expected broad storage policy, unrestricted public bucket, old three-argument RPC, and hardened public view. The user tested a citizen photo submission successfully in the local `instinct` app after running 005. This is a user-reported happy-path test, not independent proof of the post-run limits or a cross-account rejection test. `main`/AI Studio may still use the old three-argument RPC and old upload path against the same Supabase project; its photo uploads can fail. No public deployment has been reported; read back the live settings and test with distinct accounts before calling this production-ready.
 
 The app no longer exposes a copyable baseline setup SQL modal from admin login or the citizen feed. The feed's setup notice points operators to migrations and this architecture record instead. The admin dashboard displays category/status counts in text lists and explicit loading/empty/failure states. The unpinned Motion CDN loader was removed; its legacy LandingPage code is not on the active route, and CustomCursor retains CSS animation fallback.
