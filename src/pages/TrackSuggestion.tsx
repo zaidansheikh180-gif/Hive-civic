@@ -117,7 +117,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
   };
 
   return (
-    <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-8 max-w-5xl mx-auto z-10 space-y-8 select-none">
+    <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-8 max-w-5xl mx-auto z-10 space-y-8">
       {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <Link
