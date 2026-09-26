@@ -41,10 +41,10 @@ export const HomeScene: React.FC = () => {
       />
 
       {/* 3. Subtle Civic Network Nodes in the background */}
-      <CivicNetwork nodeCount={16} radius={6.5} color="#E7C226" />
+      <CivicNetwork nodeCount={9} radius={6.5} color="#E7C226" />
 
       {/* 4. Honey-Gold Particle Atmosphere */}
-      <ParticleField count={130} radius={16} speed={0.06} />
+      <ParticleField count={50} radius={16} speed={0.04} />
     </group>
   );
 };
