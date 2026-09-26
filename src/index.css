@@ -455,3 +455,20 @@
 
 /* Horizontally scrollable filters must not shrink their labels into ellipses. */
 .hive-glass.filter-chip { flex: 0 0 auto; min-width: max-content; padding-inline: 14px; white-space: nowrap; }
+
+/* Touch and safe-area polish: keep form text at 16px to prevent iOS focus zoom. */
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+button, a, select, input, textarea { touch-action: manipulation; }
+button, .hive-glass { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+@media (pointer: coarse) {
+  input, textarea, select { font-size: 16px; }
+  .hive-glass:active:not(:disabled) { transform: translateY(1px); }
+}
+.hive-safe-nav { padding-top: calc(0.875rem + env(safe-area-inset-top, 0px)); padding-left: calc(1rem + env(safe-area-inset-left, 0px)); padding-right: calc(1rem + env(safe-area-inset-right, 0px)); }
+@media (min-width: 640px) { .hive-safe-nav { padding-left: 2rem; padding-right: 2rem; } }
+#active-page-content { padding-top: env(safe-area-inset-top, 0px); }
+
+/* The glass link's base display must not override responsive hide utilities. */
+.hive-glass.hidden { display: none; }
+@media (min-width: 640px) { .hive-glass.hidden.sm\:inline-flex { display: inline-flex; } }
+@media (min-width: 768px) { .hive-glass.hidden.md\:inline-flex { display: inline-flex; } }
