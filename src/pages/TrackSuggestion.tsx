@@ -143,7 +143,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
         </p>
 
         {/* Input Bar */}
-        <form onSubmit={handleSearchSubmit} className="pt-4 flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+        <form onSubmit={handleSearchSubmit} className="pt-4 flex flex-col sm:flex-row sm:items-center gap-3 max-w-xl mx-auto">
           <div className="relative flex-1">
             <input
               type="text"
@@ -156,7 +156,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
               <LiquidGlassButton
                 type="button"
                 onClick={() => setInputRef('')}
-                aria-label="Clear reference number" className="absolute right-2 top-1.5 w-9 h-9 p-0 text-neutral-400 hover:text-white text-xs font-mono"
+                aria-label="Clear reference number" className="track-clear absolute right-2 top-1.5 w-9 h-9 p-0 text-neutral-400 hover:text-white text-xs font-mono"
               >
                 ✕
               </LiquidGlassButton>
@@ -165,7 +165,7 @@ export const TrackSuggestion: React.FC<TrackSuggestionProps> = ({ onStatusChange
           <LiquidGlassButton
             type="submit"
             disabled={loading || !inputRef.trim()}
-            className="btn-cut px-6 py-3 text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn-cut track-search px-5 py-3 text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2"
           >
             {loading ? (
               <span className="flex items-center gap-2">
