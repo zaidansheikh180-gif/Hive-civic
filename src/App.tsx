@@ -11,6 +11,7 @@ import { CitizenLogin } from './pages/CitizenLogin';
 import { CitizenRegister } from './pages/CitizenRegister';
 import { CitizenForgotPassword } from './pages/CitizenForgotPassword';
 import { CitizenAppFeed } from './pages/CitizenAppFeed';
+import { ProfilePage } from './pages/ProfilePage';
 import { SubmitSuggestion } from './pages/SubmitSuggestion';
 import { SubmissionSuccess } from './pages/SubmissionSuccess';
 import { TrackSuggestion } from './pages/TrackSuggestion';
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="/auth/forgot-password" element={<CitizenForgotPassword />} />
 
           <Route path="/app" element={<ProtectedRoute><CitizenAppFeed /></ProtectedRoute>} />
+          <Route path="/app/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/app/submit" element={<ProtectedRoute><SubmitSuggestion /></ProtectedRoute>} />
           <Route path="/app/submitted" element={<ProtectedRoute><SubmissionSuccess /></ProtectedRoute>} />
           <Route path="/app/track" element={<ProtectedRoute><TrackSuggestion onStatusChange={setCurrentTrackStatus} /></ProtectedRoute>} />
@@ -72,6 +74,7 @@ export default function App() {
 
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/profile" element={<ProtectedRoute requireAdmin><ProfilePage /></ProtectedRoute>} />
           <Route path="/admin/suggestions" element={<ProtectedRoute requireAdmin><AdminSuggestions /></ProtectedRoute>} />
           <Route path="/admin/suggestions/:id" element={<ProtectedRoute requireAdmin><SuggestionDetails /></ProtectedRoute>} />
 
