@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SceneType, SuggestionStatus } from './types';
 import { CustomCursor } from './components/CustomCursor';
 import { Navbar } from './components/Navbar';
+import { WelcomeScroll } from './components/WelcomeScroll';
 import { AcademicDisclaimer } from './components/AcademicDisclaimer';
 import { SceneCanvas } from './three/SceneCanvas';
 import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
@@ -44,7 +45,8 @@ export default function App() {
   const sceneType = getSceneType(location.pathname);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Route changes should never animate the previous page out of view.
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
 
   return (
@@ -54,6 +56,7 @@ export default function App() {
       </div>
       <SceneCanvas sceneType={sceneType} currentStatus={currentTrackStatus} />
       <CustomCursor />
+      <WelcomeScroll />
       <Navbar />
 
       <main id="active-page-content" className="relative z-10 flex-1">
