@@ -104,7 +104,7 @@ export const Navbar: React.FC = () => {
             {isAdminArea ? 'HIVE ADMIN' : 'HIVE'}
           </span>
           <span className="text-[9px] font-mono tracking-widest text-[#CC9E33]/70 uppercase pt-0.5">
-            Digital Suggestion Box
+            Civic suggestion box
           </span>
         </div>
       </Link>
@@ -154,7 +154,7 @@ export const Navbar: React.FC = () => {
               isLiveSupabase ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
             }`}
           />
-          <span>{isLiveSupabase ? 'Supabase Active' : 'Supabase Inactive'}</span>
+          <span>{isLiveSupabase ? 'Database connected' : 'Demo mode'}</span>
         </div>
 
         {/* Authenticated User state */}
