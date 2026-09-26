@@ -27,7 +27,7 @@ export const SuggestionBox: React.FC<SuggestionBoxProps> = ({
       position[1] + Math.sin(state.clock.elapsedTime * 0.8) * 0.12;
 
     if (glowLightRef.current) {
-      const baseIntensity = active || pulseGlow ? 3.5 : 1.8;
+      const baseIntensity = active || pulseGlow ? 3.5 : 0.8;
       const pulse = Math.sin(state.clock.elapsedTime * 3) * 0.6;
       glowLightRef.current.intensity = baseIntensity + (pulseGlow ? pulse : 0);
     }
@@ -53,7 +53,7 @@ export const SuggestionBox: React.FC<SuggestionBoxProps> = ({
           color="#E7C226"
           wireframe
           transparent
-          opacity={0.45}
+          opacity={0.20}
         />
       </mesh>
 
@@ -73,7 +73,7 @@ export const SuggestionBox: React.FC<SuggestionBoxProps> = ({
         <meshStandardMaterial
           color="#E7C226"
           emissive="#E7C226"
-          emissiveIntensity={active ? 2.8 : 1.5}
+          emissiveIntensity={active ? 2.8 : 0.7}
         />
       </mesh>
 
