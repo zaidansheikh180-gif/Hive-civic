@@ -1,3 +1,6 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -74,9 +77,9 @@ export const CitizenSuggestionDetails: React.FC = () => {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-[#E7C226] border-t-transparent animate-spin" />
+          <OrbNoise width={48} height={48} density={90} speed={28} pointer={{ drag: 0 }} />
           <span className="text-xs font-mono text-[#CC9E33]">
-            Retrieving Immutable Dossier...
+            Loading proposal...
           </span>
         </div>
       </div>
@@ -94,9 +97,9 @@ export const CitizenSuggestionDetails: React.FC = () => {
           <p className="text-xs text-neutral-300">
             {error || 'This proposal record does not exist or may have been deleted.'}
           </p>
-          <Link to="/app/suggestions" className="btn-cut px-6 py-2.5 text-xs font-bold uppercase inline-block">
+          <LiquidGlassLink to="/app/suggestions" className="btn-cut px-6 py-2.5 text-xs font-bold uppercase inline-block">
             Back to My Suggestions
-          </Link>
+          </LiquidGlassLink>
         </div>
       </div>
     );
@@ -115,7 +118,7 @@ export const CitizenSuggestionDetails: React.FC = () => {
         </Link>
 
         <div className="flex items-center gap-3">
-          <button
+          <LiquidGlassButton
             onClick={handleCopyRef}
             className="btn-cut-border px-3.5 py-1.5 text-xs font-mono flex items-center gap-2"
           >
@@ -123,14 +126,14 @@ export const CitizenSuggestionDetails: React.FC = () => {
             <span className="text-[10px] text-[#E7C226]">
               {copied ? 'Copied!' : 'Copy'}
             </span>
-          </button>
+          </LiquidGlassButton>
 
-          <Link
+          <LiquidGlassLink
             to={`/app/track?ref=${suggestion.reference_id}`}
             className="btn-cut px-4 py-1.5 text-xs font-bold uppercase tracking-wider"
           >
             Track View &rarr;
-          </Link>
+          </LiquidGlassLink>
         </div>
       </div>
 
@@ -204,7 +207,7 @@ export const CitizenSuggestionDetails: React.FC = () => {
 
         {/* Endorse action */}
         <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-          <button
+          <LiquidGlassButton
             onClick={handleToggleSupport}
             className={`btn-cut px-5 py-2.5 text-xs font-mono flex items-center gap-2 ${
               hasSupported ? 'bg-[#E7C226] text-black font-bold' : ''
@@ -212,7 +215,7 @@ export const CitizenSuggestionDetails: React.FC = () => {
           >
             <ThumbsUp className="w-4 h-4" />
             <span>Community Support ({suggestion.support_count || 1})</span>
-          </button>
+          </LiquidGlassButton>
         </div>
       </div>
 
