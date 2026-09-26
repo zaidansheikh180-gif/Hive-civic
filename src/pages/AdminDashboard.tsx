@@ -1,3 +1,5 @@
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -89,12 +91,12 @@ export const AdminDashboard: React.FC = () => {
       {/* Top Banner with Admin Identity */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 border border-[#CC9E33]/30">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-[#E7C226]/15 border border-[#E7C226]/40 flex items-center justify-center text-[#E7C226] shadow-[0_0_15px_rgba(231,194,38,0.3)]">
+          <div className="w-12 h-12 rounded-xl bg-[#E7C226]/15 border border-[#E7C226]/40 flex items-center justify-center text-[#E7C226]">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-[#E7C226]">
-              Administrative Operations Console
+              Review workspace
             </div>
             <h1 className="text-xl sm:text-2xl font-bold uppercase font-helvetica text-white">
               {admin.full_name}
@@ -106,15 +108,15 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
+          <LiquidGlassLink
             to="/admin/suggestions"
-            className="btn-cut px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(231,194,38,0.3)]"
+            className="btn-cut px-5 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
           >
             <FileSpreadsheet className="w-4 h-4" />
             <span>Manage Suggestions</span>
-          </Link>
+          </LiquidGlassLink>
 
-          <button
+          <LiquidGlassButton
             onClick={async () => {
               await authService.signOut();
               navigate('/admin/login');
@@ -123,7 +125,7 @@ export const AdminDashboard: React.FC = () => {
             title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
-          </button>
+          </LiquidGlassButton>
         </div>
       </div>
 
@@ -200,10 +202,10 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              <span>Suggestions by Municipal Category</span>
+              <span>Proposals by category</span>
             </h3>
             <span className="text-[10px] font-mono text-neutral-400">
-              Distribution across 10 civic areas
+              By category
             </span>
           </div>
 
@@ -243,7 +245,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="lg:col-span-4 glass-panel p-6 border border-[#CC9E33]/30 space-y-4 flex flex-col justify-between">
           <h3 className="text-sm font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
             <Inbox className="w-4 h-4" />
-            <span>Workflow Status Share</span>
+            <span>By status</span>
           </h3>
 
           <div className="h-52 w-full">
@@ -300,7 +302,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-mono uppercase tracking-wider text-[#E7C226] flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            <span>Recent Suggestions Requiring Action</span>
+            <span>Recent proposals</span>
           </h3>
           <Link
             to="/admin/suggestions"
