@@ -106,7 +106,7 @@ export const CitizenSuggestionDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-20 px-4 sm:px-8 max-w-5xl mx-auto space-y-8 select-none">
+    <div className="min-h-screen pt-24 pb-20 px-4 sm:px-8 max-w-5xl mx-auto space-y-8">
       {/* Top Bar Navigation */}
       <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
         <Link
