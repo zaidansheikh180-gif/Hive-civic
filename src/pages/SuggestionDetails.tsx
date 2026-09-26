@@ -1,3 +1,6 @@
+import { OrbNoise } from '../components/ui/OrbNoise';
+import { LiquidGlassLink } from '../components/ui/LiquidGlassButton';
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { suggestionService } from '../services/suggestionService';
@@ -91,7 +94,7 @@ export const SuggestionDetails: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-32 text-center text-xs font-mono text-[#E7C226] z-10 relative">
-        Loading investigation dossier...
+        <OrbNoise width={48} height={48} density={90} pointer={{ drag: 0 }} /><span className="block mt-2">Loading proposal...</span>
       </div>
     );
   }
@@ -100,9 +103,9 @@ export const SuggestionDetails: React.FC = () => {
     return (
       <div className="min-h-screen pt-32 text-center text-xs font-mono text-red-400 z-10 relative space-y-4">
         <div>Suggestion record not found.</div>
-        <Link to="/admin/suggestions" className="btn-cut px-4 py-2 text-xs">
+        <LiquidGlassLink to="/admin/suggestions" className="btn-cut px-4 py-2 text-xs">
           Return to Registry
-        </Link>
+        </LiquidGlassLink>
       </div>
     );
   }
@@ -234,7 +237,7 @@ export const SuggestionDetails: React.FC = () => {
         {/* Right Column: Administrative Triage & Status Control (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Status Action Form */}
-          <div className="glass-panel p-6 border-2 border-[#E7C226]/50 shadow-[0_0_30px_rgba(231,194,38,0.15)] space-y-5">
+          <div className="glass-panel p-6 border-2 border-[#E7C226]/50 space-y-5">
             <div className="flex items-center gap-2 pb-3 border-b border-white/10">
               <ShieldCheck className="w-5 h-5 text-[#E7C226]" />
               <h3 className="text-sm font-mono uppercase font-bold text-white tracking-wider">
@@ -254,7 +257,7 @@ export const SuggestionDetails: React.FC = () => {
                       key={opt.key}
                       className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
                         newStatus === opt.key
-                          ? 'bg-[#E7C226]/15 border-[#E7C226] text-white shadow-[0_0_10px_rgba(231,194,38,0.2)]'
+                          ? 'bg-[#E7C226]/15 border-[#E7C226] text-white'
                           : 'bg-white/5 border-white/10 text-neutral-300 hover:bg-white/10'
                       }`}
                     >
@@ -297,10 +300,10 @@ export const SuggestionDetails: React.FC = () => {
                 </span>
               </div>
 
-              <button
+              <LiquidGlassButton
                 type="submit"
                 disabled={saving}
-                className="btn-cut w-full py-3 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(231,194,38,0.3)] disabled:opacity-50"
+                className="btn-cut w-full py-3 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {saving ? (
                   <span>Committing Changes...</span>
@@ -310,7 +313,7 @@ export const SuggestionDetails: React.FC = () => {
                     <span>Commit Status Change</span>
                   </>
                 )}
-              </button>
+              </LiquidGlassButton>
             </form>
           </div>
 
