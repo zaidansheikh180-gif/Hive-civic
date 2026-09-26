@@ -25,7 +25,7 @@ export const SubmissionSuccess: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen pt-28 pb-16 px-4 sm:px-8 max-w-3xl mx-auto flex flex-col items-center justify-center text-center z-10 select-none">
+    <div className="relative min-h-screen pt-28 pb-16 px-4 sm:px-8 max-w-3xl mx-auto flex flex-col items-center justify-center text-center z-10">
       {/* Glowing Checkmark Emblem */}
       <div className="w-20 h-20 rounded-full bg-[#E7C226]/15 border-2 border-[#E7C226] flex items-center justify-center text-[#E7C226] mb-6 shadow-[0_0_35px_rgba(231,194,38,0.5)] animate-fadeUp">
         <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
