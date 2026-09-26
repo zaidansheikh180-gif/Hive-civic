@@ -1,3 +1,4 @@
+import { LiquidGlassButton } from '../components/ui/LiquidGlassButton';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -123,7 +124,7 @@ export const AdminLogin: React.FC = () => {
             />
           </div>
 
-          <button
+          <LiquidGlassButton
             type="submit"
             disabled={loading}
             className="btn-cut w-full py-3.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(231,194,38,0.3)] disabled:opacity-50"
@@ -136,7 +137,7 @@ export const AdminLogin: React.FC = () => {
                 <span>Sign In as Municipal Official</span>
               </span>
             )}
-          </button>
+          </LiquidGlassButton>
         </form>
 
         {/* Security & Role Instructions */}
@@ -152,14 +153,14 @@ export const AdminLogin: React.FC = () => {
 
         {/* Database Schema Viewer Button */}
         <div className="pt-2 border-t border-white/10 text-center">
-          <button
+          <LiquidGlassButton
             type="button"
             onClick={() => setShowSchemaModal(true)}
             className="text-[11px] font-mono text-[#CC9E33] hover:text-[#E7C226] flex items-center justify-center gap-1.5 mx-auto py-1"
           >
             <Database className="w-3.5 h-3.5" />
             <span>View Database Schema &amp; Setup SQL</span>
-          </button>
+          </LiquidGlassButton>
         </div>
 
         <div className="text-center space-y-2">
